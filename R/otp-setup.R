@@ -4,19 +4,22 @@
 #' The function allows the parameters to be defined in R and automatically passed to Java.
 #' This function builds a OTP graph from the Open Street Map and other files.
 #'
-#' @param dir A character string path to a folder containing the necessary files, see details
+#' @param dir A character string path to a directory containing the necessary files, see details
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
-#' @details To build an OTP graph requires the following files to be in the folder
+#' @details To build an OTP graph requires the following files to be in the directory
 #' specified by the path variable.
 #'
 #' otp.jar - The OTP file, can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
-#' /graphs - A sub folder
-#'   /current - A sub folder with the name of the OTP router used in router variaible
+#' /graphs - A sub-directory
+#'   /current - A sub-directory with the name of the OTP router used in 'router' variaible
 #'     osm.pbf - Required, pbf file containing the Open Street Map
 #'     router-config.json - Required, json file containing configations settings for the OTP
 #'     gtfs.zip - Optional, and number of GTFS files with transit timetables
 #'     terrain.tif - Optional, GeoTiff image of terrain map
+#'
+#' The function will accept any file name for the .jar file, but it must be the only .jar file in that directory
+#' OTP can support multiple routers (e.g. different regions), each router must have its own sub-directory in the graphs directory
 #'
 #' @examples
 #' otpcon <- otp_connect(dir = "C:/temp", memory = 2, router = "current")
@@ -27,7 +30,8 @@ otp_build_graph <- function(dir = NULL,
                             router = "current")
 {
   # Run Checks
-  otp_checks(dir = dir, router = router, graph = F)
+  jar_file <- otp_checks(dir = dir, router = router, graph = F)
+  message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
   set_up <- try(system(paste0("java -Xmx",
@@ -43,7 +47,7 @@ otp_build_graph <- function(dir = NULL,
                        , intern = TRUE))
 
   # Check for errors
-  if(grep("ERROR",set_up[2])){
+  if(grepl("ERROR",set_up[2])){
     message("Failed to build graph with message:")
     message(set_up[2])
   }
@@ -97,17 +101,45 @@ otp_setup <- function(dir = NULL,
                               jar_file,
                               " --router ",
                               router,
-                              " --graphs graphs --server --port ",
+                              " --graphs ",
+                              dir,
+                              "/graphs",
+                              " --server --port ",
                               port,
-                              " -- securePort ",
+                              " --securePort ",
                               securePort
                               )
-                       , intern = TRUE))
+                       , intern = FALSE))
 
-
+  # Check for errors
+  if(grep("ERROR",set_up[2])){
+    message("Failed to build graph with message:")
+    message(set_up[2])
+  }
 
 
 }
+
+#' Stop and OTP Instance
+#'
+#' OTP is run in Java and requires Java commands to be typed into the command line.
+#' The function allows the parameters to be defined in R and automatically passed to Java.
+#' This function stops an already running OTP instance
+#'
+#' The function assumes you have run otp_setup()
+#'
+#' @export
+otp_stop <- function()
+{
+  if(Sys.info()[['sysname']] == "Windows"){
+    readline(prompt="This will force Java to close, Press [enter] to continue, [escape] to abort")
+    system("Taskkill /IM java.exe /F", intern = TRUE)
+  }else{
+    message("This function currently only works in Windows")
+  }
+
+}
+
 
 #' Basic OTP Setup Checks
 #'
@@ -167,14 +199,16 @@ otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
   }
 
   # Check that the graph exists
-  graph_file = list.files(paste0(dir,"/graphs/",router), recursive = F)
-  graph_file = graph_file[grepl("Graph.obj",graph_file)]
-  if(length(graph_file) == 0){
-    warning(paste0("Unable to find Graph.obj in ",dir,"/graphs/",router))
-    stop()
+  if(graph){
+    graph_file = list.files(paste0(dir,"/graphs/",router), recursive = F)
+    graph_file = graph_file[grepl("Graph.obj",graph_file)]
+    if(length(graph_file) == 0){
+      warning(paste0("Unable to find Graph.obj in ",dir,"/graphs/",router))
+      stop()
+    }
   }
 
+
   ### End of Checks
-  message("Basic checks completed, building graph, this may take a few minutes")
-  return(jar_file)
+    return(jar_file)
 }
