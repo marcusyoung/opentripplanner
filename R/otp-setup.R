@@ -109,14 +109,16 @@ otp_setup <- function(dir = NULL,
                               " --securePort ",
                               securePort
                               )
-                       , intern = FALSE))
+                       , intern = FALSE, wait = FALSE))
+
 
   # Check for errors
-  if(grep("ERROR",set_up[2])){
+  if(grepl("ERROR",set_up[2])){
     message("Failed to build graph with message:")
     message(set_up[2])
   }
-
+  message("OTP is loading and may take a minute to be useable")
+  message(paste0("Go to localhost:",port," in your browser to view te OTP"))
 
 }
 
