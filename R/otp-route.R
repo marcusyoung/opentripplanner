@@ -41,10 +41,10 @@ otp_plan <- function(otpcon = NA,
     toPlace <- paste(toPlace, collapse = ",")
   }
   if(!all(mode %in% c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"))){
-    message("modes is not a valid, can be a charactor vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
+    message("mode is not a valid, can be a charactor vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
     stop()
   }else{
-    modes <- paste(modes, collapse = ",")
+    mode <- paste(mode, collapse = ",")
   }
   if(!all(class(date_time) %in% c("POSIXct","POSIXt") )){
     message("date_time is not a valid, must be object of class POSIXct POSIXt")
@@ -99,18 +99,42 @@ otp_plan <- function(otpcon = NA,
 
 }
 
+
 #' Convert Google Encoded Polyline into sf object
 #'
+#' OTP returns the 2d route as a polylinebean and the elevation profile as vector of numbers
+#' But the number of points for each is not the same, as 2D line only has a point at change of driections
+#' While elevation is regually spaced. If elevation is supplied the correct heights are matched
+#'
 #' @param line character - polyline
+#' @param elevation numeric - vector of elevations
 #' @export
 #' @examples
 #' None
-polyline2linestring <- function(line){
+polyline2linestring <- function(line, elevation = NULL){
   line = gepaf::decodePolyline(line)
   line = as.matrix(line[,2:1])
-  line = sf::st_linestring(line)
-  return(line)
+  linestring = sf::st_linestring(line)
+  if(exists("elevation")){
+    point = sf::st_cast(st_sfc(linestring),"POINT")
+    len = st_length(linestring)
+    dist = st_distance(point[seq(1,length(point)-1)],point[seq(2,length(point))], by_element = T)
+    dist = dist /len
+    dist = cumsum(dist) #proprotion of the elivation data to get the heights from
+    val = round(dist *length(elevation),0)
+    ele = elevation[c(1,val)]
+    linestring3D = cbind(line, ele)
+    linestring3D = sf::st_linestring(linestring3D, dim = "XYZ")
+    return(linestring3D)
+  }else{
+    return(line)
+  }
+
 }
+
+
+
+
 
 #' Convert output from Open Trip Planner into sf object
 #'
@@ -118,7 +142,7 @@ polyline2linestring <- function(line){
 #' @export
 #' @examples
 #' None
-otp_json2sf = function(obj) {
+otp_json2sf = function(obj, full_elevation = FALSE) {
   requestParameters = obj$requestParameters
   plan = obj$plan
   debugOutput = obj$debugOutput
@@ -140,19 +164,31 @@ otp_json2sf = function(obj) {
     vars$steps = NULL
     vars$legGeometry = NULL
 
-    # Come Bakc to
-    #from = leg$from
-    #to = leg$to
-    #steps = leg$steps
-
     # Extract geometry
-    legGeometry = leg$legGeometry
-    lines = lapply(legGeometry$points, polyline2linestring)
+    legGeometry = leg$legGeometry$points
+
+    # Check for Elevations
+    elevation = leg$steps[[1]]
+    elevation = elevation$elevation
+    if(sum(lengths(elevation))>0){
+      # We have Elevation Data
+      elevation = dplyr::bind_rows(elevation)
+      elevation = elevation$second
+      lines = polyline2linestring(legGeometry, elevation)
+    }else{
+      lines = polyline2linestring(legGeometry)
+    }
+
     lines = sf::st_sfc(lines, crs = 4326)
 
     vars$geometry = lines
     vars = sf::st_sf(vars)
     vars$route_option = i
+
+    #Add full elevation if required
+    if(full_elevation){
+      vars$elevation = elevation
+    }
 
     #return to list
     legs[[i]] = vars
