@@ -117,6 +117,7 @@ otp_setup <- function(dir = NULL,
     message("Failed to build graph with message:")
     message(set_up[2])
   }
+  Sys.sleep(30)
   message("OTP is loading and may take a minute to be useable")
   message(paste0("Go to localhost:",port," in your browser to view the OTP"))
 
