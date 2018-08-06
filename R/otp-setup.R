@@ -27,29 +27,38 @@
 #'
 otp_build_graph <- function(dir = NULL,
                             memory = 2,
-                            router = "current")
+                            router = "current",
+                            analyst = TRUE)
 {
   # Run Checks
   jar_file <- otp_checks(dir = dir, router = router, graph = F)
   message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
-  set_up <- try(system(paste0("java -Xmx",
-                              memory,
-                              "G -jar ",
-                              dir,
-                              "/",
-                              jar_file,
-                              " --build ",
-                              dir,
-                              "/graphs/",
-                              router)
-                       , intern = TRUE))
+  text <- paste0("java -Xmx",
+                    memory,
+                    "G -jar ",
+                    dir,
+                    "/",
+                    jar_file,
+                    " --build ",
+                    dir,
+                    "/graphs/",
+                    router)
+
+  if(analyst){
+    text <- paste0(text," --analyst")
+  }
+
+
+  set_up <- try(system(text, intern = TRUE))
 
   # Check for errors
   if(grepl("ERROR",set_up[2])){
     message("Failed to build graph with message:")
     message(set_up[2])
+  }else{
+    message("Graph built")
   }
 
 
@@ -71,8 +80,7 @@ otp_build_graph <- function(dir = NULL,
 #' Only a single router is currently supported
 #' @param port A positive integer. Optional, default is 8080.
 #' @param secure_port A positive integer. Optional, default is 8081.
-#' @param check Logical. If TRUE connection object is only returned if OTP
-#'     instance and router are confirmed reachable. Optional, default is TRUE.
+#' @param analyist Logical. Should the analyist features be loaded? Default FALSE
 
 #' @examples
 #' otpcon <- otp_connect()
@@ -87,29 +95,35 @@ otp_setup <- function(dir = NULL,
                       memory = 2,
                       router = "current",
                       port = 8080,
-                      securePort = 8081)
+                      securePort = 8081,
+                      analyst = FALSE)
 {
   # Run Checks
   jar_file <- otp_checks(dir = dir, router = router, graph = T)
 
   # Set up OTP
-  set_up <- try(system(paste0("java -Xmx",
-                              memory,
-                              "G -jar ",
-                              dir,
-                              "/",
-                              jar_file,
-                              " --router ",
-                              router,
-                              " --graphs ",
-                              dir,
-                              "/graphs",
-                              " --server --port ",
-                              port,
-                              " --securePort ",
-                              securePort
-                              )
-                       , intern = FALSE, wait = FALSE))
+  text <- paste0("java -Xmx",
+                    memory,
+                    "G -jar ",
+                    dir,
+                    "/",
+                    jar_file,
+                    " --router ",
+                    router,
+                    " --graphs ",
+                    dir,
+                    "/graphs",
+                    " --server --port ",
+                    port,
+                    " --securePort ",
+                    securePort
+  )
+
+  if(analyst){
+    text <- paste0(text," --analyst")
+  }
+
+  set_up <- try(system(message, intern = FALSE, wait = FALSE))
 
 
   # Check for errors
