@@ -118,7 +118,7 @@ otp_setup <- function(dir = NULL,
     message(set_up[2])
   }
   message("OTP is loading and may take a minute to be useable")
-  message(paste0("Go to localhost:",port," in your browser to view te OTP"))
+  message(paste0("Go to localhost:",port," in your browser to view the OTP"))
 
 }
 
