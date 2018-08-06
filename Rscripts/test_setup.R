@@ -3,12 +3,13 @@ memory = 60
 library(opentripplanner)
 library(tmap)
 tmap_mode("view")
-otp_build_graph(dir,memory = memory)
+otp_build_graph(dir,memory = memory, analyst = TRUE)
 otp_setup(dir,
           memory = 2,
           router = "current",
           port = 8801,
-          securePort = 8802)
+          securePort = 8802,
+          analyst = TRUE)
 
 otpcon <- otp_connect("localhost","current",8801)
 fromPlace = c("53.43306", "-2.23881")
