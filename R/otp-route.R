@@ -155,7 +155,7 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
 
   legs = list()
   #Loop over itineraries
-  for(i in seq(1:nrow(itineraries))){
+  for(i in seq(1,nrow(itineraries))){
     leg = itineraries$legs[[i]]
     # split into parts
     vars = leg
@@ -174,7 +174,7 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
       # We have Elevation Data
       elevation = dplyr::bind_rows(elevation)
       elevation = elevation$second
-      lines = polyline2linestring(legGeometry, elevation)
+      lines = lapply(legGeometry, polyline2linestring, elevation = elevation)
     }else{
       lines = polyline2linestring(legGeometry)
     }

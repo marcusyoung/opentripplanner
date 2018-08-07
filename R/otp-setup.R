@@ -123,7 +123,7 @@ otp_setup <- function(dir = NULL,
     text <- paste0(text," --analyst")
   }
 
-  set_up <- try(system(message, intern = FALSE, wait = FALSE))
+  set_up <- try(system(text, intern = FALSE, wait = FALSE))
 
 
   # Check for errors
