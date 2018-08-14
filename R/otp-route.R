@@ -21,24 +21,37 @@ otp_plan <- function(otpcon = NA,
            maxWalkDistance = 800,
            walkReluctance = 2,
            transferPenalty = 0,
-           minTransferTime = 0)
+           minTransferTime = 0,
+           full_elevation = FALSE)
 {
   # Check Valid Inputs
   if(!"otpconnect" %in% class(otpcon)){
     message("otpcon is not a valid otpconnect object")
     stop()
   }
-  if(class(fromPlace) != "numeric" & length(fromPlace) != 2){
+  if(class(fromPlace) != "numeric" | length(fromPlace) != 2){
     message("fromPlace is not a valid latitude, longitude pair")
     stop()
   }else{
-    fromPlace <- paste(fromPlace, collapse = ",")
+    if(fromPlace[1] <= 90 & fromPlace[1] >= -90 &  fromPlace[2] <= 180 & fromPlace[2] >= -180){
+      fromPlace <- paste(fromPlace, collapse = ",")
+    }else{
+      message("fromPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
+      stop()
+    }
+
   }
-  if(class(toPlace) != "numeric" & length(toPlace) != 2){
+  if(class(toPlace) != "numeric" | length(toPlace) != 2){
     message("toPlace is not a valid latitude, longitude pair")
     stop()
   }else{
-    toPlace <- paste(toPlace, collapse = ",")
+    if(toPlace[1] <= 90 & toPlace[1] >= -90 &  toPlace[2] <= 180 & toPlace[2] >= -180){
+      toPlace <- paste(toPlace, collapse = ",")
+    }else{
+      message("fromPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
+      stop()
+    }
+
   }
   if(!all(mode %in% c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"))){
     message("mode is not a valid, can be a charactor vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
@@ -86,13 +99,14 @@ otp_plan <- function(otpcon = NA,
 
   # Check for errors - if no error object, continue to process content
   if(is.null(asjson$error$id)){
-    response <- otp_json2sf(asjson)
+    response <- otp_json2sf(asjson, full_elevation)
     return(response)
   } else {
     # there is an error - return the error code and message
     response <-
       list("errorId" = asjson$error$id,
            "errorMessage" = asjson$error$msg)
+    warning("A routing error has occured, returing error message")
     return(response)
   }
 
@@ -116,13 +130,18 @@ polyline2linestring <- function(line, elevation = NULL){
   line = as.matrix(line[,2:1])
   linestring = sf::st_linestring(line)
   if(exists("elevation")){
-    point = sf::st_cast(st_sfc(linestring),"POINT")
-    len = st_length(linestring)
-    dist = st_distance(point[seq(1,length(point)-1)],point[seq(2,length(point))], by_element = T)
-    dist = dist /len
-    dist = cumsum(dist) #proprotion of the elivation data to get the heights from
-    val = round(dist *length(elevation),0)
-    ele = elevation[c(1,val)]
+    # Some modes don't have elevation e.g TRANSIT, check for this
+    if(all(is.na(elevation))){
+      ele = rep(0,length(linestring)/2)
+    }else{
+      point = sf::st_cast(sf::st_sfc(linestring),"POINT")
+      len = sf::st_length(linestring)
+      dist = sf::st_distance(point[seq(1,length(point)-1)],point[seq(2,length(point))], by_element = T)
+      dist = dist /len
+      dist = cumsum(dist) #proprotion of the elivation data to get the heights from
+      val = round(dist *length(elevation),0)
+      ele = elevation[c(1,val)]
+    }
     linestring3D = cbind(line, ele)
     linestring3D = sf::st_linestring(linestring3D, dim = "XYZ")
     return(linestring3D)
@@ -138,7 +157,8 @@ polyline2linestring <- function(line, elevation = NULL){
 
 #' Convert output from Open Trip Planner into sf object
 #'
-#' @param obj Object from transportapi.com read-in with
+#' @param obj Object from the OTP API to process
+#' @param full_elevation logical should the full elevation profile be returned (if available)
 #' @export
 #' @examples
 #' None
@@ -147,7 +167,7 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
   plan = obj$plan
   debugOutput = obj$debugOutput
 
-  itineraries = obj$plan$itineraries
+  itineraries = plan$itineraries
 
   itineraries$startTime = as.POSIXct(itineraries$startTime / 1000 , origin = '1970-01-01', tz = "GMT")
   itineraries$endTime = as.POSIXct(itineraries$endTime / 1000 , origin = '1970-01-01', tz = "GMT")
@@ -168,13 +188,17 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
     legGeometry = leg$legGeometry$points
 
     # Check for Elevations
-    elevation = leg$steps[[1]]
-    elevation = elevation$elevation
+    steps = leg$steps
+    elevation = lapply(seq(1,length(legGeometry)), function(x){leg$steps[[x]]$elevation})
     if(sum(lengths(elevation))>0){
       # We have Elevation Data
-      elevation = dplyr::bind_rows(elevation)
-      elevation = elevation$second
-      lines = lapply(legGeometry, polyline2linestring, elevation = elevation)
+      # Extract the elevation values
+      elevation = lapply(seq(1,length(legGeometry)), function(x){dplyr::bind_rows(elevation[[x]])})
+      elevation = lapply(seq(1,length(legGeometry)), function(x){if(nrow(elevation[[x]]) == 0){NA}else{elevation[[x]]$second }})
+      lines = list()
+      for(j in seq(1,length(legGeometry))){
+        lines[[j]] = polyline2linestring(line = legGeometry[j], elevation = elevation[[j]])
+      }
     }else{
       lines = polyline2linestring(legGeometry)
     }
