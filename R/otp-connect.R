@@ -112,6 +112,11 @@ check_router.default <- function(x)
 
 check_router.otpconnect <- function(x)
 {
-  check <- httr::GET(make_url(x))
-  return(check$status_code)
+  check <- try(httr::GET(make_url(x)))
+  if(class(check) == "try-error"){
+    return(check[1])
+  }else{
+    return(check$status_code)
+  }
+
 }
