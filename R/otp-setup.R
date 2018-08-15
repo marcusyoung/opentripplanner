@@ -81,6 +81,7 @@ otp_build_graph <- function(dir = NULL,
 #' @param port A positive integer. Optional, default is 8080.
 #' @param secure_port A positive integer. Optional, default is 8081.
 #' @param analyist Logical. Should the analyist features be loaded? Default FALSE
+#' @param wait Logical, Should R wait until OTP has loaded before running next line of code, default TRUE
 
 #' @examples
 #' otpcon <- otp_connect()
@@ -96,7 +97,8 @@ otp_setup <- function(dir = NULL,
                       router = "current",
                       port = 8080,
                       securePort = 8081,
-                      analyst = FALSE)
+                      analyst = FALSE,
+                      wait = TRUE)
 {
   # Run Checks
   jar_file <- otp_checks(dir = dir, router = router, graph = T)
@@ -131,9 +133,34 @@ otp_setup <- function(dir = NULL,
     message("Failed to build graph with message:")
     message(set_up[2])
   }
-  Sys.sleep(30)
-  message("OTP is loading and may take a minute to be useable")
-  message(paste0("Go to localhost:",port," in your browser to view the OTP"))
+
+  message(paste0(Sys.time()," OTP is loading and may take a while to be useable"))
+
+  if(wait){
+    Sys.sleep(30)
+
+    # Check if connected
+    for(i in 1:10){
+      #message(paste0("Attempt ",i))
+      otpcon <- try(otp_connect(hostname = "localhost",
+                                             router = router,
+                                             port = port,
+                                             ssl = FALSE,
+                                             check = TRUE), silent = T)
+      if("otpconnect" %in% class(otpcon)){
+        message(paste0(Sys.time()," OTP is ready to use Go to localhost:",port," in your browser to view the OTP"))
+        browseURL(paste0(ifelse(otpcon$ssl,"https://","http://"),"localhost:",port))
+        break
+      }else{
+        if(i < 10){
+          Sys.sleep(30)
+        }else{
+          message(paste0(Sys.time()," OTP is taking an unusually long time to load, releasing R to your control"))
+        }
+
+      }
+    }
+  }
 
 }
 
