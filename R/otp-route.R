@@ -82,18 +82,17 @@ otp_plan <- function(otpcon = NA,
     message("date_time is not a valid, must be object of class POSIXct POSIXt")
     stop()
   }else{
-    date = substr(as.character(date_time),1,10)
-    time = substr(as.character(date_time),12,16)
+    date <- substr(as.character(date_time),1,10)
+    time <- substr(as.character(date_time),12,16)
   }
   if(arriveBy){
-    arriveBy = 'true'
+    arriveBy <- 'true'
   }else{
-    arriveBy = 'false'
+    arriveBy <- 'false'
   }
 
   # Construct URL
-  routerUrl <- paste0(ifelse(otpcon$ssl, 'https://', 'http://'),otpcon$hostname,
-                      ":",otpcon$port,"/otp/routers/",otpcon$router,"/plan")
+  routerUrl <- make_url(otpcon)
 
   req <- httr::GET(
     routerUrl,
@@ -143,26 +142,26 @@ otp_plan <- function(otpcon = NA,
 #' @param elevation numeric - vector of elevations
 #' None
 polyline2linestring <- function(line, elevation = NULL){
-  line = gepaf::decodePolyline(line)
-  line = as.matrix(line[,2:1])
+  line <- gepaf::decodePolyline(line)
+  line <- as.matrix(line[,2:1])
   if(exists("elevation")){
     # Some modes don't have elevation e.g TRANSIT, check for this
     if(all(is.na(elevation))){
-      ele = rep(0,nrow(line))
+      ele <- rep(0,nrow(line))
     }else{
-      elevation = elevation[order(elevation$distance),]
+      elevation <-elevation[order(elevation$distance),]
       # Calculate the length of each segment
-      dist = sapply(seq(1,nrow(line)-1),function(x){geosphere::distm(line[x,], line[x+1,], fun = geosphere::distHaversine)})
-      dist = cumsum(dist)
-      vals = findInterval(dist, elevation$distance)
+      dist <-sapply(seq(1,nrow(line)-1),function(x){geosphere::distm(line[x,], line[x+1,], fun = geosphere::distHaversine)})
+      dist <- cumsum(dist)
+      vals <- findInterval(dist, elevation$distance)
       vals[vals == 0] = 1L
-      ele = elevation$second[c(1,vals)]
+      ele <- elevation$second[c(1,vals)]
     }
-    linestring3D = cbind(line, ele)
-    linestring3D = sf::st_linestring(linestring3D, dim = "XYZ")
+    linestring3D <- cbind(line, ele)
+    linestring3D <- sf::st_linestring(linestring3D, dim = "XYZ")
     return(linestring3D)
   }else{
-    linestring = sf::st_linestring(line)
+    linestring <- sf::st_linestring(line)
     return(linestring)
   }
 
@@ -172,27 +171,27 @@ polyline2linestring <- function(line, elevation = NULL){
 #' OTP returns elevation as a distacne along the leg, resetting to 0 at each leg
 #' but we need the the distance along the total route. so calucalte this
 #' @param dists numeric from the elevation first column
-correct_distances = function(dists){
-  res = list()
-  rebase = 0
+correct_distances <- function(dists){
+  res <- list()
+  rebase <- 0
   for(k in seq(1,length(dists))){
     if(k == 1){
-      dists_k = dists[k]
-      res[[k]] = dists_k
+      dists_k <- dists[k]
+      res[[k]] <- dists_k
     }else{
-      dists_k = dists[k]
-      res_km1 = res[[k-1]]
+      dists_k <- dists[k]
+      res_km1 <- res[[k-1]]
       if(dists_k == 0){
-        rebase = rebase +  dists[k-1]
-        res[[k]] = dists_k + rebase
+        rebase <- rebase +  dists[k-1]
+        res[[k]] <- dists_k + rebase
       }else{
-        res[[k]] = dists_k + rebase
+        res[[k]] <- dists_k + rebase
       }
     }
     #message(paste0("k = ",k," original value = ",dists_k," rebase = ",rebase," new value = ",res[[k]]))
   }
 
-  res = unlist(res)
+  res <- unlist(res)
   return(res)
 }
 
@@ -202,67 +201,67 @@ correct_distances = function(dists){
 #'
 #' @param obj Object from the OTP API to process
 #' @param full_elevation logical should the full elevation profile be returned (if available)
-otp_json2sf = function(obj, full_elevation = FALSE) {
-  requestParameters = obj$requestParameters
-  plan = obj$plan
-  debugOutput = obj$debugOutput
+otp_json2sf <- function(obj, full_elevation = FALSE) {
+  requestParameters <- obj$requestParameters
+  plan <- obj$plan
+  debugOutput <- obj$debugOutput
 
-  itineraries = plan$itineraries
+  itineraries <- plan$itineraries
 
-  itineraries$startTime = as.POSIXct(itineraries$startTime / 1000 , origin = '1970-01-01', tz = "GMT")
-  itineraries$endTime = as.POSIXct(itineraries$endTime / 1000 , origin = '1970-01-01', tz = "GMT")
+  itineraries$startTime <- as.POSIXct(itineraries$startTime / 1000 , origin = '1970-01-01', tz = "GMT")
+  itineraries$endTime <- as.POSIXct(itineraries$endTime / 1000 , origin = '1970-01-01', tz = "GMT")
 
 
-  legs = list()
+  legs <- list()
   #Loop over itineraries
   for(i in seq(1,nrow(itineraries))){
-    leg = itineraries$legs[[i]]
+    leg <- itineraries$legs[[i]]
     # split into parts
-    vars = leg
-    vars$from = NULL
-    vars$to = NULL
-    vars$steps = NULL
-    vars$legGeometry = NULL
+    vars <- leg
+    vars$from <- NULL
+    vars$to <- NULL
+    vars$steps <- NULL
+    vars$legGeometry <- NULL
 
     # Extract geometry
-    legGeometry = leg$legGeometry$points
+    legGeometry <- leg$legGeometry$points
 
     # Check for Elevations
-    steps = leg$steps
-    elevation = lapply(seq(1,length(legGeometry)), function(x){leg$steps[[x]]$elevation})
+    steps <- leg$steps
+    elevation <- lapply(seq(1,length(legGeometry)), function(x){leg$steps[[x]]$elevation})
     if(sum(lengths(elevation))>0){
       # We have Elevation Data
       # Extract the elevation values
-      elevation = lapply(seq(1,length(legGeometry)), function(x){dplyr::bind_rows(elevation[[x]])})
-      elevation = lapply(seq(1,length(legGeometry)), function(x){if(nrow(elevation[[x]]) == 0){NA}else{elevation[[x]] }})
+      elevation <- lapply(seq(1,length(legGeometry)), function(x){dplyr::bind_rows(elevation[[x]])})
+      elevation <- lapply(seq(1,length(legGeometry)), function(x){if(nrow(elevation[[x]]) == 0){NA}else{elevation[[x]] }})
       # the x coordinate of elevation reset at each leg, correct for this
       for(l in seq(1,length(elevation))){
         if(!all(is.na(elevation[[l]]))){
-          elevation[[l]]$distance = correct_distances(elevation[[l]]$first)
+          elevation[[l]]$distance <- correct_distances(elevation[[l]]$first)
         }
       }
       # process the lines into sf objects
-      lines = list()
+      lines <- list()
       for(j in seq(1,length(legGeometry))){
-        lines[[j]] = polyline2linestring(line = legGeometry[j], elevation = elevation[[j]])
+        lines[[j]] <- polyline2linestring(line = legGeometry[j], elevation = elevation[[j]])
       }
     }else{
-      lines = polyline2linestring(legGeometry)
+      lines <- polyline2linestring(legGeometry)
     }
 
-    lines = sf::st_sfc(lines, crs = 4326)
+    lines <- sf::st_sfc(lines, crs = 4326)
 
-    vars$geometry = lines
-    vars = sf::st_sf(vars)
-    vars$route_option = i
+    vars$geometry <- lines
+    vars <- sf::st_sf(vars)
+    vars$route_option <- i
 
     #Add full elevation if required
     if(full_elevation){
-      vars$elevation = elevation
+      vars$elevation <- elevation
     }
 
     #return to list
-    legs[[i]] = vars
+    legs[[i]] <- vars
   }
 
   legs <- legs[!is.na(legs)]
@@ -273,15 +272,15 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
   legs <- sf::st_sf(legs)
   sf::st_crs(legs) <- 4326
 
-  legs$startTime = as.POSIXct(legs$startTime / 1000 , origin = '1970-01-01', tz = "GMT")
-  legs$endTime = as.POSIXct(legs$endTime / 1000 , origin = '1970-01-01', tz = "GMT")
+  legs$startTime <- as.POSIXct(legs$startTime / 1000 , origin = '1970-01-01', tz = "GMT")
+  legs$endTime <- as.POSIXct(legs$endTime / 1000 , origin = '1970-01-01', tz = "GMT")
 
-  itineraries$legs = NULL
-  itineraries = itineraries[legs$route_option,]
-  itineraries = dplyr::bind_cols(itineraries,legs)
+  itineraries$legs <- NULL
+  itineraries <- itineraries[legs$route_option,]
+  itineraries <- dplyr::bind_cols(itineraries,legs)
 
-  itineraries = sf::st_as_sf(itineraries)
-  sf::st_crs(itineraries) = 4326
+  itineraries <- sf::st_as_sf(itineraries)
+  sf::st_crs(itineraries) <- 4326
 
   return(itineraries)
 }
