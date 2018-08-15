@@ -181,8 +181,8 @@ otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
     stop()
   }
   # Check that the jar exists
-  jar_file = list.files(dir, recursive = F)
-  jar_file = jar_file[grepl("\\.jar",jar_file)]
+  jar_file <- list.files(dir, recursive = F)
+  jar_file <- jar_file[grepl("\\.jar",jar_file)]
   if(length(jar_file) == 0){
     warning(paste0("Unable to find .jar file in ",dir))
     stop()
@@ -217,8 +217,8 @@ otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
 
   # Check that the graph exists
   if(graph){
-    graph_file = list.files(paste0(dir,"/graphs/",router), recursive = F)
-    graph_file = graph_file[grepl("Graph.obj",graph_file)]
+    graph_file <- list.files(paste0(dir,"/graphs/",router), recursive = F)
+    graph_file <- graph_file[grepl("Graph.obj",graph_file)]
     if(length(graph_file) == 0){
       warning(paste0("Unable to find Graph.obj in ",dir,"/graphs/",router))
       stop()
