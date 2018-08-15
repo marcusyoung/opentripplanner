@@ -3,14 +3,33 @@
 #' @param otpcon OTP connection object produced by otp_connect()
 #' @param fromPlace Numeric vector, Latitude/Longitude pair, e.g. `c(51.529258,-0.134649)`
 #' @param toPlace Numeric vector, Latitude/Longitude pair, e.g. `c(51.506383,-0.088780,)`
-#' @mode Character vector of modes of travel valid values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL default CAR
-#' @date_time POSIXct, a date and time, defaults to current date and time
-#' @arriveBy Logical, Whether the trip should depart or arrive at the specified date and time, default FALSE
-#' @maxWalkDistance Numeric
-#' @walkReluctance Numeric
-#' @transferPenalty Numeric
-#' @minTransferTime Numeric
+#' @param mode Character vector of modes of travel valid values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL, default CAR
+#' @param date_time POSIXct, a date and time, defaults to current date and time
+#' @param arriveBy Logical, Whether the trip should depart or arrive at the specified date and time, default FALSE
+#' @param maxWalkDistance Numeric passed to OTP
+#' @param walkReluctance Numeric passed to OTP
+#' @param transferPenalty Numeric passed to OTP
+#' @param minTransferTime Numeric passed to OTP
+#' @param full_elevation Logical, should the full elevation profile be returned, defualt FALSE
+#'
 #' @export
+#'
+#' @detials
+#' This function returns a SF data.frame with one row for each leg of the jounrey
+#' (a leg is defined by a change in mode). For transit more than one route option may be returned
+#' and is indicated by the route_option column.
+#'
+#'
+#' Elevation
+#' OTP supports elevation data, and can return the elevation profile of the route if available.
+#' OTP returns the elevation profile separately from the XY coordinates, this means there is not
+#' direct match between the number of XY points and the number of Z points.  OTP also only returns
+#' the elevation profile for the first leg of the route (this appears to be a bug).
+#' As default the otp_plan function matches the elevation profile to the XY coordinates to return
+#' a SF linestring with XYZ coordinates. If you require a more detailed elevation profile,
+#' the full_elevation parameter will return a nested data.frame with three columns.
+#' first and second are returned from OTP, while distance is the cumulative distance along the
+#' route and is derived from First.
 #'
 otp_plan <- function(otpcon = NA,
            fromPlace = NA,
@@ -48,13 +67,13 @@ otp_plan <- function(otpcon = NA,
     if(toPlace[1] <= 90 & toPlace[1] >= -90 &  toPlace[2] <= 180 & toPlace[2] >= -180){
       toPlace <- paste(toPlace, collapse = ",")
     }else{
-      message("fromPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
+      message("toPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
       stop()
     }
 
   }
   if(!all(mode %in% c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"))){
-    message("mode is not a valid, can be a charactor vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
+    message("mode is not a valid, can be a character vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
     stop()
   }else{
     mode <- paste(mode, collapse = ",")
@@ -114,7 +133,7 @@ otp_plan <- function(otpcon = NA,
 }
 
 
-#' Convert Google Encoded Polyline into sf object
+#' Convert Google Encoded Polyline and elevation data into sf object
 #'
 #' OTP returns the 2d route as a polylinebean and the elevation profile as vector of numbers
 #' But the number of points for each is not the same, as 2D line only has a point at change of driections
@@ -122,36 +141,60 @@ otp_plan <- function(otpcon = NA,
 #'
 #' @param line character - polyline
 #' @param elevation numeric - vector of elevations
-#' @export
-#' @examples
 #' None
 polyline2linestring <- function(line, elevation = NULL){
   line = gepaf::decodePolyline(line)
   line = as.matrix(line[,2:1])
-  linestring = sf::st_linestring(line)
   if(exists("elevation")){
     # Some modes don't have elevation e.g TRANSIT, check for this
     if(all(is.na(elevation))){
-      ele = rep(0,length(linestring)/2)
+      ele = rep(0,nrow(line))
     }else{
-      point = sf::st_cast(sf::st_sfc(linestring),"POINT")
-      len = sf::st_length(linestring)
-      dist = sf::st_distance(point[seq(1,length(point)-1)],point[seq(2,length(point))], by_element = T)
-      dist = dist /len
-      dist = cumsum(dist) #proprotion of the elivation data to get the heights from
-      val = round(dist *length(elevation),0)
-      ele = elevation[c(1,val)]
+      elevation = elevation[order(elevation$distance),]
+      # Calculate the length of each segment
+      dist = sapply(seq(1,nrow(line)-1),function(x){geosphere::distm(line[x,], line[x+1,], fun = geosphere::distHaversine)})
+      dist = cumsum(dist)
+      vals = findInterval(dist, elevation$distance)
+      vals[vals == 0] = 1L
+      ele = elevation$second[c(1,vals)]
     }
     linestring3D = cbind(line, ele)
     linestring3D = sf::st_linestring(linestring3D, dim = "XYZ")
     return(linestring3D)
   }else{
-    return(line)
+    linestring = sf::st_linestring(line)
+    return(linestring)
   }
 
 }
+#' Correct the elevation distances
+#'
+#' OTP returns elevation as a distacne along the leg, resetting to 0 at each leg
+#' but we need the the distance along the total route. so calucalte this
+#' @param dists numeric from the elevation first column
+correct_distances = function(dists){
+  res = list()
+  rebase = 0
+  for(k in seq(1,length(dists))){
+    if(k == 1){
+      dists_k = dists[k]
+      res[[k]] = dists_k
+    }else{
+      dists_k = dists[k]
+      res_km1 = res[[k-1]]
+      if(dists_k == 0){
+        rebase = rebase +  dists[k-1]
+        res[[k]] = dists_k + rebase
+      }else{
+        res[[k]] = dists_k + rebase
+      }
+    }
+    #message(paste0("k = ",k," original value = ",dists_k," rebase = ",rebase," new value = ",res[[k]]))
+  }
 
-
+  res = unlist(res)
+  return(res)
+}
 
 
 
@@ -159,9 +202,6 @@ polyline2linestring <- function(line, elevation = NULL){
 #'
 #' @param obj Object from the OTP API to process
 #' @param full_elevation logical should the full elevation profile be returned (if available)
-#' @export
-#' @examples
-#' None
 otp_json2sf = function(obj, full_elevation = FALSE) {
   requestParameters = obj$requestParameters
   plan = obj$plan
@@ -194,7 +234,14 @@ otp_json2sf = function(obj, full_elevation = FALSE) {
       # We have Elevation Data
       # Extract the elevation values
       elevation = lapply(seq(1,length(legGeometry)), function(x){dplyr::bind_rows(elevation[[x]])})
-      elevation = lapply(seq(1,length(legGeometry)), function(x){if(nrow(elevation[[x]]) == 0){NA}else{elevation[[x]]$second }})
+      elevation = lapply(seq(1,length(legGeometry)), function(x){if(nrow(elevation[[x]]) == 0){NA}else{elevation[[x]] }})
+      # the x coordinate of elevation reset at each leg, correct for this
+      for(l in seq(1,length(elevation))){
+        if(!all(is.na(elevation[[l]]))){
+          elevation[[l]]$distance = correct_distances(elevation[[l]]$first)
+        }
+      }
+      # process the lines into sf objects
       lines = list()
       for(j in seq(1,length(legGeometry))){
         lines[[j]] = polyline2linestring(line = legGeometry[j], elevation = elevation[[j]])

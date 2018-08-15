@@ -36,9 +36,9 @@ lens = cumsum(lens)
 lens = c(0,lens)
 
 
-plot(coords[,3] ~ lens, col="red", type="o", xlim=c(0,max(lens)), xlab = "Distance (m)", ylab = "Elevation (m)", pch = 9, cex = 0.5)
-lines(unlist(route$elevation[[1]]) ~ seq(1,max(lens), max(lens)/length(unlist(route$elevation[[1]]))), col="black", type="o", pch = 9, cex = 0.5, xlim=c(0,length(unlist(route$elevation[[1]]))))
 
+plot(route$elevation[[1]]$second ~ route$elevation[[1]]$distance, col="black", type="o", pch = 9, cex = 0.5, xlab = "Route Distance (m)", ylab = "Elevation (m)", main = "Comparison of full elevation (black) and extracted elevation (red)")
+lines(coords[,3] ~ lens, col="red", type="o", xlim=c(0,max(lens)), xlab = "Distance (m)", ylab = "Elevation (m)", pch = 9, cex = 0.5)
 
 
 otp_stop()
