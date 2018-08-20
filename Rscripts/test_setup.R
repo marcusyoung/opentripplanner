@@ -1,9 +1,10 @@
 dir = "F:/otp-tutorial-master/otp-tutorial-master/demo"
 memory = 10
-devtools::install_github("mem48/opentripplanner-malcolm")
-library(opentripplanner)
+#devtools::install_github("mem48/opentripplanner-malcolm")
+#library(opentripplanner)
 source("R/otp-setup.R")
 source("R/otp-route.R")
+source("R/otp-connect.R")
 library(tmap)
 tmap_mode("view")
 #otp_build_graph(dir,memory = memory, analyst = TRUE)
@@ -12,9 +13,10 @@ otp_setup(dir,
           router = "current",
           port = 8801,
           securePort = 8802,
-          analyst = TRUE)
+          analyst = TRUE,
+          wait = TRUE)
 
-otpcon <- otp_connect("localhost","current",8801)
+otpcon <- otp_connect(hostname =  "localhost", router = "current", port = 8801)
 #fromPlace = c(53.50101, -2.25443)
 #toPlace = c(53.46281,-2.23967)
 
