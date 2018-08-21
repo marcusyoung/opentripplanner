@@ -39,16 +39,17 @@ otp_build_graph <- function(otp = NULL,
   message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
-  text <- paste0("java -Xmx",
+  text <- paste0('java -Xmx',
                     memory,
-                    "G -jar ",
+                    'G -jar "',
                     otp,
-                    "/",
+                    '/',
                     jar_file,
-                    " --build ",
+                    '" --build "',
                     dir,
-                    "/graphs/",
-                    router)
+                    '/graphs/',
+                    router,
+                    '"')
 
   if(analyst){
     text <- paste0(text," --analyst")
@@ -106,20 +107,20 @@ otp_setup <- function(otp = NULL,
   jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = T)
 
   # Set up OTP
-  text <- paste0("java -Xmx",
+  text <- paste0('java -Xmx',
                     memory,
-                    "G -jar ",
+                    'G -jar "',
                     otp,
-                    "/",
+                    '/',
                     jar_file,
-                    " --router ",
+                    '" --router ',
                     router,
-                    " --graphs ",
+                    ' --graphs "',
                     dir,
-                    "/graphs",
-                    " --server --port ",
+                    '/graphs"',
+                    ' --server --port ',
                     port,
-                    " --securePort ",
+                    ' --securePort ',
                     securePort
   )
 
