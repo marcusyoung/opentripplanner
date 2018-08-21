@@ -35,7 +35,7 @@ otp_build_graph <- function(otp = NULL,
                             analyst = TRUE)
 {
   # Run Checks
-  jar_file <- otp_checks(dir = dir, router = router, graph = F)
+  jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = F)
   message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
@@ -103,7 +103,7 @@ otp_setup <- function(otp = NULL,
                       wait = TRUE)
 {
   # Run Checks
-  jar_file <- otp_checks(otp, otp, dir = dir, router = router, graph = T)
+  jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = T)
 
   # Set up OTP
   text <- paste0("java -Xmx",
