@@ -4,15 +4,18 @@
 #' The function allows the parameters to be defined in R and automatically passed to Java.
 #' This function builds a OTP graph from the Open Street Map and other files.
 #'
-#' @param dir A character string path to a directory containing the necessary files, see details
+#' @param otp A character string, path to the OTP .jar file
+#' @param dir A character string, path to a directory containing the necessary files, see details
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
 #' @return
 #' This function does not return a value to R, but will return the message "Graph built" if sucessfull
-#' @details To build an OTP graph requires the following files to be in the directory
-#' specified by the path variable.
+#' @details
+#' The OTP .jar file can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
 #'
-#' otp.jar - The OTP file, can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
+#' To build an OTP graph requires the following files to be in the directory
+#' specified by the dir variable.
+#'
 #' /graphs - A sub-directory
 #'   /current - A sub-directory with the name of the OTP router used in 'router' variaible
 #'     osm.pbf - Required, pbf file containing the Open Street Map
@@ -25,7 +28,8 @@
 #' @examples
 #' otp_build_graph("C:/otp")
 #' @export
-otp_build_graph <- function(dir = NULL,
+otp_build_graph <- function(otp = NULL,
+                            dir = NULL,
                             memory = 2,
                             router = "current",
                             analyst = TRUE)
@@ -38,7 +42,7 @@ otp_build_graph <- function(dir = NULL,
   text <- paste0("java -Xmx",
                     memory,
                     "G -jar ",
-                    dir,
+                    otp,
                     "/",
                     jar_file,
                     " --build ",
@@ -86,10 +90,11 @@ otp_build_graph <- function(dir = NULL,
 #' This function does not return a value to R.
 #' If wait is TRUE R will wait until OTP is running (maximum of 5 minutes)
 #' @examples
-#' otp_setup("C:/opt")
-#' otp_setup("C:/opt", memory = 5, analyst = TRUE)
+#' otp_setup("C:/otp","C:/data")
+#' otp_setup("C:/otp","C:/data", memory = 5, analyst = TRUE)
 #' @export
-otp_setup <- function(dir = NULL,
+otp_setup <- function(otp = NULL,
+                      dir = NULL,
                       memory = 2,
                       router = "current",
                       port = 8080,
@@ -98,13 +103,13 @@ otp_setup <- function(dir = NULL,
                       wait = TRUE)
 {
   # Run Checks
-  jar_file <- otp_checks(dir = dir, router = router, graph = T)
+  jar_file <- otp_checks(otp, otp, dir = dir, router = router, graph = T)
 
   # Set up OTP
   text <- paste0("java -Xmx",
                     memory,
                     "G -jar ",
-                    dir,
+                    otp,
                     "/",
                     jar_file,
                     " --router ",
@@ -190,21 +195,29 @@ otp_stop <- function()
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
 #' @param graph Logical, check for graph, default = FALSE
 #'
-otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
+otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 {
   ### Checks
   # Check we have the directory defined
-  if(!exists("dir")){
+  if(!exists("otp")){
     warning("Path to the Open Trip Planner is not defined")
     stop()
   }
+  if(!exists("dir")){
+    warning("Path to the files to build graph are not defined")
+    stop()
+  }
   # Check that the folder exists
+  if(!dir.exists(otp)){
+    warning(paste0("Unable to find directory: ",otp))
+    stop()
+  }
   if(!dir.exists(dir)){
     warning(paste0("Unable to find directory: ",dir))
     stop()
   }
   # Check that the jar exists
-  jar_file <- list.files(dir, recursive = F)
+  jar_file <- list.files(otp, recursive = F)
   jar_file <- jar_file[grepl("\\.jar",jar_file)]
   if(length(jar_file) == 0){
     warning(paste0("Unable to find .jar file in ",dir))
@@ -233,7 +246,7 @@ otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
     java_version <- strsplit(java_version,"\\.")[[1]][1:2]
     java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
     if(java_version < 1.8){
-      warning("OPT requires Java version 1.8 or later")
+      warning("OTP requires Java version 1.8 or later")
       stop()
     }
   }
