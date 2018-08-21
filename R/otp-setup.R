@@ -7,6 +7,8 @@
 #' @param dir A character string path to a directory containing the necessary files, see details
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
+#' @return
+#' This function does not return a value to R, but will return the message "Graph built" if sucessfull
 #' @details To build an OTP graph requires the following files to be in the directory
 #' specified by the path variable.
 #'
@@ -20,11 +22,9 @@
 #'
 #' The function will accept any file name for the .jar file, but it must be the only .jar file in that directory
 #' OTP can support multiple routers (e.g. different regions), each router must have its own sub-directory in the graphs directory
-#'
 #' @examples
-#' otpcon <- otp_connect(dir = "C:/temp", memory = 2, router = "current")
+#' otp_build_graph("C:/otp")
 #' @export
-#'
 otp_build_graph <- function(dir = NULL,
                             memory = 2,
                             router = "current",
@@ -82,15 +82,12 @@ otp_build_graph <- function(dir = NULL,
 #' @param secure_port A positive integer. Optional, default is 8081.
 #' @param analyist Logical. Should the analyist features be loaded? Default FALSE
 #' @param wait Logical, Should R wait until OTP has loaded before running next line of code, default TRUE
-
+#' @return
+#' This function does not return a value to R.
+#' If wait is TRUE R will wait until OTP is running (maximum of 5 minutes)
 #' @examples
-#' otpcon <- otp_connect()
-#' otpcon <- otp_connect(router = "UK2018",
-#'                       ssl = TRUE)
-#' otpcon <- otp_connect(hostname = "ec2.us-west-2.compute.amazonaws.com",
-#'                       router = "UK2018",
-#'                       port = 8888,
-#'                       ssl = TRUE)
+#' otp_setup("C:/opt")
+#' otp_setup("C:/opt", memory = 5, analyst = TRUE)
 #' @export
 otp_setup <- function(dir = NULL,
                       memory = 2,
@@ -192,7 +189,6 @@ otp_stop <- function()
 #' @param dir A character string path to a folder containing the necessary files, see details
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
 #' @param graph Logical, check for graph, default = FALSE
-#' @export
 #'
 otp_checks <- function(dir = NULL, router = NULL, graph = FALSE)
 {

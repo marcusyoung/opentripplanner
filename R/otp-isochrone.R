@@ -1,8 +1,7 @@
-#' Get the geometry of a route from the OTP
+#' Get the Isochrones from a location
 #'
 #' @param otpcon OTP connection object produced by otp_connect()
 #' @param fromPlace Numeric vector, Latitude/Longitude pair, e.g. `c(51.529258,-0.134649)`
-#' @param toPlace Numeric vector, Latitude/Longitude pair, e.g. `c(51.506383,-0.088780,)`
 #' @param mode Character vector of modes of travel valid values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL, default CAR
 #' @param date_time POSIXct, a date and time, defaults to current date and time
 #' @param arriveBy Logical, Whether the trip should depart or arrive at the specified date and time, default FALSE
@@ -10,27 +9,16 @@
 #' @param walkReluctance Numeric passed to OTP
 #' @param transferPenalty Numeric passed to OTP
 #' @param minTransferTime Numeric passed to OTP
-#' @param full_elevation Logical, should the full elevation profile be returned, defualt FALSE
-#'
+#' @param cutoffSec Numeric vector, number of seconds to define the break points of each Isochrone
+#' @return
+#' Returns a data.frame of SF POLYGONS
+#' @examples
+#' isochrone1 <- otp_isochrone(otpcon, fromPlace = c(51.5292,-0.1346))
+#' isochrone2 <- otp_isochrone(otpcon, fromPlace = c(51.5292,-0.1346), mode = c("WALK","TRANSIT"), cutoffSec = c(600,1200,1800))
+#' @detials Isochrones are maps of equal travel time,
+#' for a given location a map is produced shoing how long it takes to reach
+#' each location.
 #' @export
-#'
-#' @detials
-#' This function returns a SF data.frame with one row for each leg of the jounrey
-#' (a leg is defined by a change in mode). For transit more than one route option may be returned
-#' and is indicated by the route_option column.
-#'
-#'
-#' Elevation
-#' OTP supports elevation data, and can return the elevation profile of the route if available.
-#' OTP returns the elevation profile separately from the XY coordinates, this means there is not
-#' direct match between the number of XY points and the number of Z points.  OTP also only returns
-#' the elevation profile for the first leg of the route (this appears to be a bug).
-#' As default the otp_plan function matches the elevation profile to the XY coordinates to return
-#' a SF linestring with XYZ coordinates. If you require a more detailed elevation profile,
-#' the full_elevation parameter will return a nested data.frame with three columns.
-#' first and second are returned from OTP, while distance is the cumulative distance along the
-#' route and is derived from First.
-#'
 otp_isochrone <- function(otpcon = NA,
                      fromPlace = NA,
                      mode = "CAR",
