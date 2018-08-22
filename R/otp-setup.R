@@ -9,7 +9,7 @@
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
 #' @return
-#' This function does not return a value to R, but will return the message "Graph built" if sucessfull
+#' Returns and log messages produced by OTP, and will return the message "Graph built" if sucessfull
 #' @details
 #' The OTP .jar file can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
 #'
@@ -64,8 +64,9 @@ otp_build_graph <- function(otp = NULL,
     message(set_up[2])
   }else{
     message("Graph built")
-  }
 
+  }
+  return(set_up)
 
 
 }
