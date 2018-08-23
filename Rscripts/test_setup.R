@@ -8,7 +8,8 @@ source("R/otp-connect.R")
 library(tmap)
 tmap_mode("view")
 #otp_build_graph(dir,memory = memory, analyst = TRUE)
-otp_setup(dir,
+otp_setup(otp = dir,
+          dir = dir,
           memory = 30,
           router = "current",
           port = 8801,
