@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 inst/doc
+*.cfe
+*.cfs
+*.si
+lucene/segments.gen
+lucene/segments_1
