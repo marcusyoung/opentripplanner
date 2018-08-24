@@ -93,6 +93,7 @@ otp_plan <- function(otpcon = NA,
 
   # Construct URL
   routerUrl <- make_url(otpcon)
+  routerUrl <- paste0(routerUrl,"/plan")
 
   req <- httr::GET(
     routerUrl,

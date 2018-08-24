@@ -7,3 +7,4 @@ inst/doc
 *.si
 lucene/segments.gen
 lucene/segments_1
+lucene/segments_2
