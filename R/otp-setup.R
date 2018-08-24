@@ -59,7 +59,7 @@ otp_build_graph <- function(otp = NULL,
   set_up <- try(system(text, intern = TRUE))
 
   # Check for errors
-  if(grepl("ERROR",set_up[2])){
+  if(grepl("ERROR",set_up[2]) | grepl("Error",set_up[1])){
     message("Failed to build graph with message:")
     message(set_up[2])
   }else{
@@ -106,6 +106,8 @@ otp_setup <- function(otp = NULL,
 {
   # Run Checks
   jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = T)
+
+  memory <- floor(memory) # Can have fractions of GB
 
   # Set up OTP
   text <- paste0('java -Xmx',
