@@ -106,7 +106,7 @@ Once the package has been installed you will need to activate it by running this
 library(opentripplanner)
 ```
 
-##Next Steps
+## Next Steps
 
 Now that you have installed Open Trip Planner for R got to the Getting Started vignette, to find how to create a graph and use it to plan trips. You might also intrested in:
 
