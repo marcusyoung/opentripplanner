@@ -8,6 +8,7 @@
 #' @param dir A character string, path to a directory containing the necessary files, see details
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
+#' @param analyst Logial, should analyst feature be built, default FALSE
 #' @return
 #' Returns and log messages produced by OTP, and will return the message "Graph built" if sucessfull
 #' @details
@@ -32,7 +33,7 @@ otp_build_graph <- function(otp = NULL,
                             dir = NULL,
                             memory = 2,
                             router = "current",
-                            analyst = TRUE)
+                            analyst = FALSE)
 {
   # Run Checks
   jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = F)

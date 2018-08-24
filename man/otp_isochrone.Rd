@@ -30,11 +30,13 @@ otp_isochrone(otpcon = NA, fromPlace = NA, mode = "CAR",
 
 \item{cutoffSec}{Numeric vector, number of seconds to define the break points of each Isochrone}
 }
+\value{
+Returns a data.frame of SF POLYGONS
+}
 \description{
 Get the Isochrones from a location
 }
 \examples{
 isochrone1 <- otp_isochrone(otpcon, fromPlace = c(51.5292,-0.1346))
 isochrone2 <- otp_isochrone(otpcon, fromPlace = c(51.5292,-0.1346), mode = c("WALK","TRANSIT"), cutoffSec = c(600,1200,1800))
-
 }

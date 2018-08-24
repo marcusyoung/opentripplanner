@@ -4,8 +4,8 @@
 \alias{otp_setup}
 \title{Set up an OTP instance.}
 \usage{
-otp_setup(dir = NULL, memory = 2, router = "current", port = 8080,
-  securePort = 8081, analyst = FALSE, wait = TRUE)
+otp_setup(otp = NULL, dir = NULL, memory = 2, router = "current",
+  port = 8080, securePort = 8081, analyst = FALSE, wait = TRUE)
 }
 \arguments{
 \item{dir}{A character string path to the directory containing the OTP .jar file and the OTP graph}
@@ -23,6 +23,10 @@ Only a single router is currently supported}
 
 \item{analyist}{Logical. Should the analyist features be loaded? Default FALSE}
 }
+\value{
+This function does not return a value to R.
+If wait is TRUE R will wait until OTP is running (maximum of 5 minutes)
+}
 \description{
 OTP is run in Java and requires Java commands to be typed into the command line.
 The function allows the parameters to be defined in R and automatically passed to Java.
@@ -32,6 +36,6 @@ This function sets up a local instance of OTP, for remote versions see documenta
 The function assumes you have run otp_build_graph()
 }
 \examples{
-otp_setup("C:/opt")
-otp_setup("C:/opt", memory = 5, analyst = TRUE)
+otp_setup("C:/otp","C:/data")
+otp_setup("C:/otp","C:/data", memory = 5, analyst = TRUE)
 }

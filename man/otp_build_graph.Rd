@@ -4,15 +4,20 @@
 \alias{otp_build_graph}
 \title{Build an OTP Graph}
 \usage{
-otp_build_graph(dir = NULL, memory = 2, router = "current",
-  analyst = TRUE)
+otp_build_graph(otp = NULL, dir = NULL, memory = 2,
+  router = "current", analyst = TRUE)
 }
 \arguments{
-\item{dir}{A character string path to a directory containing the necessary files, see details}
+\item{otp}{A character string, path to the OTP .jar file}
+
+\item{dir}{A character string, path to a directory containing the necessary files, see details}
 
 \item{memory}{A positive integer. Amount of memory to assign to the OTP in GB, default is 2}
 
 \item{router}{A character string for the name of the router, must match with contents of dir, default "current"}
+}
+\value{
+Returns and log messages produced by OTP, and will return the message "Graph built" if sucessfull
 }
 \description{
 OTP is run in Java and requires Java commands to be typed into the command line.
@@ -20,10 +25,11 @@ The function allows the parameters to be defined in R and automatically passed t
 This function builds a OTP graph from the Open Street Map and other files.
 }
 \details{
-To build an OTP graph requires the following files to be in the directory
-specified by the path variable.
+The OTP .jar file can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
 
-otp.jar - The OTP file, can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
+To build an OTP graph requires the following files to be in the directory
+specified by the dir variable.
+
 /graphs - A sub-directory
   /current - A sub-directory with the name of the OTP router used in 'router' variaible
     osm.pbf - Required, pbf file containing the Open Street Map

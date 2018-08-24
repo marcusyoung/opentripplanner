@@ -4,7 +4,7 @@
 \alias{otp_checks}
 \title{Basic OTP Setup Checks}
 \usage{
-otp_checks(dir = NULL, router = NULL, graph = FALSE)
+otp_checks(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 }
 \arguments{
 \item{dir}{A character string path to a folder containing the necessary files, see details}

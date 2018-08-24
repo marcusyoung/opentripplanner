@@ -35,8 +35,10 @@ Now that we have a working instance of OTP, we'll use it to generate some travel
 
 ```{r eval = FALSE}
 airport_current  <- otp_isochrone(otpcon = otpcon,
-            fromPlace = c(53.3627432, -2.2729342), # latlong of Manchester Airport
-            cutoffSec = c(15, 30, 45, 60, 75, 90) * 60 )# Cut offs in seconds
+            fromPlace = c(53.36367, -2.27190), # latlong of Manchester Airport
+            mode = c("WALK","TRANSIT"),
+            cutoffSec = c(15, 30, 45, 60, 75, 90) * 60 ) # Cut offs in seconds
+airport_current$minutes = airport_current$time / 60 # Convert back to minutes
 
 ```
 
@@ -45,5 +47,62 @@ We can visualise the isochrones on a map using the `tmap` package.
 ```{r, eval = FALSE}
 library(tmap)                       # Load the tmap package
 tmap_mode("view")                   # Set tmap to interative viewing
-qtm(airport_current, fill = "time") # Plot the route on a map
+map <- tm_shape(airport_current) +  # Build the map
+  tm_fill("minutes",
+          breaks = c(0, 15.001, 30.001, 45.001, 60.001, 75.001, 90.001),
+          style = "fixed",
+          palette = "-RdYlBu") +
+  tm_borders()
+map                                 # Plot the map
 ```
+
+You should see a map like this.
+
+```{r, echo = FALSE, fig.align='center', fig.cap="\\label{fig:otpgui}Isochrones from Manchester Airport"}
+knitr::include_graphics("images/isochrone.png")
+```
+
+## Batch Routing
+
+In this final part of the tutorial, we are going to automate querying the OTP API to generate large quantities of route data - potentially for many thousands of origin:destination pairs. In this example, we will gather data on accessing Manchester Airport using public transport for each of the LSOAs in Greater Manchester.
+
+To do this we will be using the `otp_route_batch` function.
+
+We'll start by importing the sample data `gm-lsoa-centroids.Rds` 
+
+```{r, eval = TRUE}
+lsoa <- readRDS(system.file("data/gm-lsoa-centroids.Rds", package="opentripplanner"))
+head(lsoa)
+```
+
+`otp_plan_batch` requires the fromPlace and the toPlace to each be 2 x m matricies wher each row is a latitute/longditude pair.
+
+
+```{r, eval = TRUE}
+toPlace <- matrix(rep(c(53.36367, -2.27190),nrow(lsoa)), ncol = 2, byrow = TRUE)
+head(toPlace)
+fromPlace <- matrix(c(lsoa$lat,lsoa$lng), ncol = 2, byrow = FALSE)
+head(fromPlace)
+```
+
+Now we can use the `otp_plan_batch` to find the routes
+
+```{r, eval = FALSE}
+routes <- otp_plan_batch(otpcon = otpcon,
+                         fromPlace = fromPlace,
+                         toPlace = toPlace)
+```
+
+
+You may get some error message returned as OTP is unable to find some of the routes. The `otp_plan_batch` will skip over errors and return all the routes it can get. It will then print out any error messages. You will have also noticed the handy progress bar.
+
+You can plot the routes using `tmap` 
+
+**Note: you may find that plotting so many routes overloads your computer** 
+
+If you do plot all the routes it should look something like this:
+
+```{r, echo = FALSE, fig.align='center', fig.cap="\\label{fig:route2airport}Driving Routes to Manchester Airport"}
+knitr::include_graphics("images/routes_to_airport.png")
+```
+
