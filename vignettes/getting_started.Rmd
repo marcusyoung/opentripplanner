@@ -112,7 +112,7 @@ otpcon <- otp_connect(hostname =  "localhost", router = "current", port = 8801)
 Now we can use R to get a route from the OTP. OTP accepts lattitute and longitude cooridantes for a `fromPlace` (start of the jounrey) and `toPlace` (end of journey).
 
 ```{r, eval = FALSE}
-route <- otp_plan(otpcon, fromPlace = c(53.53541, -2.13066), toPlace = c(53.40749, -2.32635))
+route <- otp_plan(otpcon, fromPlace = c(53.48478, -2.29786), toPlace = c(53.46680, -2.21169))
 ```
 
 If you have the `tmap` package installed you can view the route using.
@@ -121,8 +121,10 @@ If you have the `tmap` package installed you can view the route using.
 install.packages("tmap")  # Only needed if you don't have tmap
 library(tmap)             # Load the tmap package
 tmap_mode("view")         # Set tmap to interative viewing
-qtm(route)                # Plot the route on a map
+qtm(sf::st_zm(route))     # Plot the route on a map
 ```
+
+Notice the use of `sf::st_zm(route)` this is because `tmap` does not currently support XYZ coordinates
 
 ## Stopping the OTP
 
