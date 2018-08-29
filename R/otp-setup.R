@@ -107,32 +107,38 @@ otp_setup <- function(otp = NULL,
 {
   # Run Checks
   jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = T)
-
   memory <- floor(memory) # Can have fractions of GB
 
+
   # Set up OTP
-  text <- paste0('java -Xmx',
-                 memory,
-                 'G -jar "',
-                 otp,
-                 '/',
-                 jar_file,
-                 '" --router ',
-                 router,
-                 ' --graphs "',
-                 dir,
-                 '/graphs"',
-                 ' --server --port ',
-                 port,
-                 ' --securePort ',
-                 securePort
-  )
+  if(Sys.info()[['sysname']] == "Linux") {
+    message("You're on linux, this function is not yet supported")
+    stop()
 
-  if(analyst){
-    text <- paste0(text," --analyst")
+  }else if(Sys.info()[['sysname']] == "Windows"){
+
+    text <- paste0('java -Xmx',memory,'G -jar "',
+                   otp,'/',jar_file,
+                   '" --router ',router,
+                   ' --graphs "',dir,'/graphs"',
+                   ' --server --port ',port,
+                   ' --securePort ',securePort)
+
+    if(analyst){
+      text <- paste0(text," --analyst")
+    }
+    set_up <- try(system(text, intern = FALSE, wait = FALSE))
+
+
+  }else if(Sys.info()[['sysname']] == "Darwin"){
+    message("You're on Mac, this function is not yet supported")
+    stop()
+
+  }else{
+    message("You're on and unknow OS, this function is not yet supported")
+    stop()
+
   }
-
-  set_up <- try(system(text, intern = FALSE, wait = FALSE))
 
 
   # Check for errors
@@ -182,11 +188,15 @@ otp_setup <- function(otp = NULL,
 #' @export
 otp_stop <- function()
 {
-  if(Sys.info()[['sysname']] == "Windows"){
+  if(Sys.info()[['sysname']] == "Linux") {
+    message("You're on linux, this function is not yet supported")
+  }else if(Sys.info()[['sysname']] == "Windows"){
     readline(prompt="This will force Java to close, Press [enter] to continue, [escape] to abort")
     system("Taskkill /IM java.exe /F", intern = TRUE)
+  }else if(Sys.info()[['sysname']] == "Darwin"){
+    message("You're on Mac, this function is not yet supported")
   }else{
-    message("This function currently only works in Windows")
+    message("You're on and unknow OS, this function is not yet supported")
   }
 
 }
@@ -242,10 +252,8 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 
   # Check we have correct verrsion of Java
   if(Sys.info()[['sysname']] == "Linux") {
-    linux_java_msg = system("java -version")
-    message("You're on linux, ensure you have an up-to-date java install")
-  } else {
-
+    message("You're on linux, java version check not yet supported")
+  }else if(Sys.info()[['sysname']] == "Windows"){
     java_version <- try(system("java -version", intern = TRUE))
     if(class(java_version) == "try-error"){
       warning("R was unable to detect a version of Java")
@@ -260,6 +268,10 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
         stop()
       }
     }
+  }else if(Sys.info()[['sysname']] == "Darwin"){
+    message("You're on Mac, java version check not yet supported")
+  }else{
+    message("You're on and unknow OS, java version check not yet supported")
   }
 
   # Check that the graph exists
