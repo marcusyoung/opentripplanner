@@ -41,16 +41,16 @@ otp_build_graph <- function(otp = NULL,
 
   # Set up OTP
   text <- paste0('java -Xmx',
-                    memory,
-                    'G -jar "',
-                    otp,
-                    '/',
-                    jar_file,
-                    '" --build "',
-                    dir,
-                    '/graphs/',
-                    router,
-                    '"')
+                 memory,
+                 'G -jar "',
+                 otp,
+                 '/',
+                 jar_file,
+                 '" --build "',
+                 dir,
+                 '/graphs/',
+                 router,
+                 '"')
 
   if(analyst){
     text <- paste0(text," --analyst")
@@ -112,20 +112,20 @@ otp_setup <- function(otp = NULL,
 
   # Set up OTP
   text <- paste0('java -Xmx',
-                    memory,
-                    'G -jar "',
-                    otp,
-                    '/',
-                    jar_file,
-                    '" --router ',
-                    router,
-                    ' --graphs "',
-                    dir,
-                    '/graphs"',
-                    ' --server --port ',
-                    port,
-                    ' --securePort ',
-                    securePort
+                 memory,
+                 'G -jar "',
+                 otp,
+                 '/',
+                 jar_file,
+                 '" --router ',
+                 router,
+                 ' --graphs "',
+                 dir,
+                 '/graphs"',
+                 ' --server --port ',
+                 port,
+                 ' --securePort ',
+                 securePort
   )
 
   if(analyst){
@@ -150,10 +150,10 @@ otp_setup <- function(otp = NULL,
     for(i in 1:10){
       #message(paste0("Attempt ",i))
       otpcon <- try(otp_connect(hostname = "localhost",
-                                             router = router,
-                                             port = port,
-                                             ssl = FALSE,
-                                             check = TRUE), silent = T)
+                                router = router,
+                                port = port,
+                                ssl = FALSE,
+                                check = TRUE), silent = T)
       if("otpconnect" %in% class(otpcon)){
         message(paste0(Sys.time()," OTP is ready to use Go to localhost:",port," in your browser to view the OTP"))
         browseURL(paste0(ifelse(otpcon$ssl,"https://","http://"),"localhost:",port))
@@ -241,18 +241,24 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
   }
 
   # Check we have correct verrsion of Java
-  java_version <- try(system("java -version", intern = TRUE))
-  if(class(java_version) == "try-error"){
-    warning("R was unable to detect a version of Java")
-    stop()
-  }else{
-    java_version <- java_version[1]
-    java_version <- strsplit(java_version,"\"")[[1]][2]
-    java_version <- strsplit(java_version,"\\.")[[1]][1:2]
-    java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
-    if(java_version < 1.8){
-      warning("OTP requires Java version 1.8 or later")
+  if(Sys.info()[['sysname']] == "Linux") {
+    linux_java_msg = system("java -version")
+    message("You're on linux, ensure you have an up-to-date java install")
+  } else {
+
+    java_version <- try(system("java -version", intern = TRUE))
+    if(class(java_version) == "try-error"){
+      warning("R was unable to detect a version of Java")
       stop()
+    }else{
+      java_version <- java_version[1]
+      java_version <- strsplit(java_version,"\"")[[1]][2]
+      java_version <- strsplit(java_version,"\\.")[[1]][1:2]
+      java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
+      if(java_version < 1.8){
+        warning("OTP requires Java version 1.8 or later")
+        stop()
+      }
     }
   }
 
@@ -268,5 +274,5 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 
 
   ### End of Checks
-    return(jar_file)
+  return(jar_file)
 }
