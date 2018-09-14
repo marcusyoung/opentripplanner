@@ -1,5 +1,6 @@
-dir = "F:/otp-tutorial-master/otp-tutorial-master/demo"
-memory = 10
+otp = "E:/otp/otp.jar"
+dir = "D:/GitHub/opentripplanner-malcolm/inst/extdata/"
+memory = 6
 #devtools::install_github("mem48/opentripplanner-malcolm")
 #library(opentripplanner)
 source("R/otp-setup.R")
@@ -7,10 +8,10 @@ source("R/otp-route.R")
 source("R/otp-connect.R")
 library(tmap)
 tmap_mode("view")
-#otp_build_graph(dir,memory = memory, analyst = TRUE)
-otp_setup(otp = dir,
+otp_build_graph(otp = otp, dir = dir,memory = memory)
+otp_setup(otp = otp,
           dir = dir,
-          memory = 30,
+          memory = memory,
           router = "current",
           port = 8801,
           securePort = 8802,

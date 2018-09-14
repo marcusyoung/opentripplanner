@@ -27,7 +27,7 @@
 #' The function will accept any file name for the .jar file, but it must be the only .jar file in that directory
 #' OTP can support multiple routers (e.g. different regions), each router must have its own sub-directory in the graphs directory
 #' @examples
-#' log = otp_build_graph(otp = "C:/otp/otp.jar", dir = "C:/otp")
+#' log = otp_build_graph(otp = "C:/otp/otp.jar", dir = "C:/data")
 #'
 #' @export
 otp_build_graph <- function(otp = NULL,
@@ -79,8 +79,8 @@ otp_build_graph <- function(otp = NULL,
 #' This function sets up a local instance of OTP, for remote versions see documentation.
 #'
 #' The function assumes you have run otp_build_graph()
-#'
-#' @param dir A character string path to the directory containing the OTP .jar file and the OTP graph
+#' @param otp A character string, path to the OTP .jar file
+#' @param dir A character string, path to a directory containing the necessary files, see details
 #' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
 #' @param router A character vector for the name of the routers, must match with contents of dir, default "current"
 #' Only a single router is currently supported
@@ -91,9 +91,18 @@ otp_build_graph <- function(otp = NULL,
 #' @return
 #' This function does not return a value to R.
 #' If wait is TRUE R will wait until OTP is running (maximum of 5 minutes)
+#' @detials
+#'
+#' #' To run an OTP graph must have been created using otp_build-grah and the following files to be in the directory
+#' specified by the dir variable.
+#'
+#' /graphs - A sub-directory
+#'   /current - A sub-directory with the name of the OTP router used in 'router' variaible
+#'     graph.obj  OTP graph
+#'
 #' @examples
-#' otp_setup("C:/otp","C:/data")
-#' otp_setup("C:/otp","C:/data", memory = 5, analyst = TRUE)
+#' otp_setup(otp = "C:/otp/otp.jar", dir = "C:/data")
+#' otp_setup(otp = "C:/otp/otp.jar", dir = "C:/data", memory = 5, analyst = TRUE)
 #' @export
 otp_setup <- function(otp = NULL,
                       dir = NULL,
@@ -105,8 +114,8 @@ otp_setup <- function(otp = NULL,
                       wait = TRUE)
 {
   # Run Checks
-  jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = T)
-  memory <- floor(memory) # Can have fractions of GB
+  otp_checks(otp = otp, dir = dir, router = router, graph = T)
+  memory <- floor(memory) # Can't have fractions of GB
 
 
   # Set up OTP
@@ -117,7 +126,7 @@ otp_setup <- function(otp = NULL,
   }else if(Sys.info()[['sysname']] == "Windows"){
 
     text <- paste0('java -Xmx',memory,'G -jar "',
-                   otp,'/',jar_file,
+                   otp,
                    '" --router ',router,
                    ' --graphs "',dir,'/graphs"',
                    ' --server --port ',port,
@@ -159,9 +168,10 @@ otp_setup <- function(otp = NULL,
                                 port = port,
                                 ssl = FALSE,
                                 check = TRUE), silent = T)
+
       if("otpconnect" %in% class(otpcon)){
         message(paste0(Sys.time()," OTP is ready to use Go to localhost:",port," in your browser to view the OTP"))
-        browseURL(paste0(ifelse(otpcon$ssl,"https://","http://"),"localhost:",port))
+        browseURL(make_url(otpcon))
         break
       }else{
         if(i < 10){
@@ -211,41 +221,15 @@ otp_stop <- function()
 #'
 otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 {
-  ### Checks
-  # Check we have the directory defined
-  if(!exists("otp")){
-    warning("Path to the Open Trip Planner is not defined")
-    stop()
-  }
-  if(!exists("dir")){
-    warning("Path to the files to build graph are not defined")
-    stop()
-  }
-  # Check that the folder exists
-  if(!file.exists(otp)){
-    warning(paste0("Unable to find directory: ",otp))
-    stop()
-  }
-  if(!dir.exists(dir)){
-    warning(paste0("Unable to find directory: ",dir))
-    stop()
-  }
-
-  # Check for the graphs folder
-  if(!dir.exists(paste0(dir,"/graphs"))){
-    warning(paste0("The graphs sub-folder could not be found in: ",dir))
-    stop()
-  }
-  # Check for the router folder
-  if(!dir.exists(paste0(dir,"/graphs/",router))){
-    warning(paste0("The router sub-folder named '",router,"', could not be found in: ",dir,"/graphs"))
-    stop()
-  }
+  # Checks
+  checkmate::assertFileExists(otp, extension = "jar")
+  checkmate::assertDirectoryExists(dir)
+  checkmate::assertDirectoryExists(paste0(dir,"/graphs/",router))
 
   # Check we have correct verrsion of Java
-  if(Sys.info()[['sysname']] == "Linux") {
+  if(testOS("linux")) {
     message("You're on linux, java version check not yet supported")
-  }else if(Sys.info()[['sysname']] == "Windows"){
+  }else if(testOS("windows")){
     java_version <- try(system("java -version", intern = TRUE))
     if(class(java_version) == "try-error"){
       warning("R was unable to detect a version of Java")
@@ -260,7 +244,7 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
         stop()
       }
     }
-  }else if(Sys.info()[['sysname']] == "Darwin"){
+  }else if(testOS("mac")){
     message("You're on Mac, java version check not yet supported")
   }else{
     message("You're on and unknow OS, java version check not yet supported")
@@ -268,14 +252,8 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 
   # Check that the graph exists
   if(graph){
-    graph_file <- list.files(paste0(dir,"/graphs/",router), recursive = F)
-    graph_file <- graph_file[grepl("Graph.obj",graph_file)]
-    if(length(graph_file) == 0){
-      warning(paste0("Unable to find Graph.obj in ",dir,"/graphs/",router))
-      stop()
-    }
+    checkmate::assertFileExists(paste0(dir,"/graphs/",router,"/Graph.obj"))
   }
-
 
   ### End of Checks
 }

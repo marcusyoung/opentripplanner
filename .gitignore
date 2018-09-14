@@ -8,3 +8,4 @@ inst/doc
 lucene/segments.gen
 lucene/segments_1
 lucene/segments_2
+inst/extdata/graphs/current/Graph.obj
