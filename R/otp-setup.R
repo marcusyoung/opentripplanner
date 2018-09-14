@@ -119,11 +119,11 @@ otp_setup <- function(otp = NULL,
 
 
   # Set up OTP
-  if(testOS("linux")) {
+  if(checkmate::testOS("linux")) {
     message("You're on linux, this function is not yet supported")
     stop()
 
-  }else if(testOS("windows")){
+  }else if(checkmate::testOS("windows")){
 
     text <- paste0('java -Xmx',memory,'G -jar "',
                    otp,
@@ -138,7 +138,7 @@ otp_setup <- function(otp = NULL,
     set_up <- try(system(text, intern = FALSE, wait = FALSE))
 
 
-  }else if(testOS("mac")){
+  }else if(checkmate::testOS("mac")){
     message("You're on Mac, this function is not yet supported")
     stop()
 
@@ -171,7 +171,7 @@ otp_setup <- function(otp = NULL,
 
       if("otpconnect" %in% class(otpcon)){
         message(paste0(Sys.time()," OTP is ready to use Go to localhost:",port," in your browser to view the OTP"))
-        browseURL(make_url(otpcon))
+        browseURL(paste0(ifelse(otpcon$ssl,"https://","http://"),"localhost:",port))
         break
       }else{
         if(i < 10){
@@ -197,12 +197,12 @@ otp_setup <- function(otp = NULL,
 #' @export
 otp_stop <- function()
 {
-  if(Sys.info()[['sysname']] == "Linux") {
+  if(checkmate::testOS("linux")) {
     message("You're on linux, this function is not yet supported")
-  }else if(Sys.info()[['sysname']] == "Windows"){
+  }else if(checkmate::testOS("windows")){
     readline(prompt="This will force Java to close, Press [enter] to continue, [escape] to abort")
     system("Taskkill /IM java.exe /F", intern = TRUE)
-  }else if(Sys.info()[['sysname']] == "Darwin"){
+  }else if(checkmate::testOS("mac")){
     message("You're on Mac, this function is not yet supported")
   }else{
     message("You're on and unknow OS, this function is not yet supported")
@@ -227,9 +227,9 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
   checkmate::assertDirectoryExists(paste0(dir,"/graphs/",router))
 
   # Check we have correct verrsion of Java
-  if(testOS("linux")) {
+  if(checkmate::testOS("linux")) {
     message("You're on linux, java version check not yet supported")
-  }else if(testOS("windows")){
+  }else if(checkmate::testOS("windows")){
     java_version <- try(system("java -version", intern = TRUE))
     if(class(java_version) == "try-error"){
       warning("R was unable to detect a version of Java")
@@ -239,12 +239,12 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
       java_version <- strsplit(java_version,"\"")[[1]][2]
       java_version <- strsplit(java_version,"\\.")[[1]][1:2]
       java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
-      if(java_version < 8 | java_version >= 9){
+      if(java_version < 1.8 | java_version >= 1.9){
         warning("OTP requires Java version 8 ")
         stop()
       }
     }
-  }else if(testOS("mac")){
+  }else if(checkmate::testOS("mac")){
     message("You're on Mac, java version check not yet supported")
   }else{
     message("You're on and unknow OS, java version check not yet supported")
