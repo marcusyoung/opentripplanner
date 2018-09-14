@@ -21,7 +21,7 @@
 #' @export
 otp_isochrone <- function(otpcon = NA,
                      fromPlace = NA,
-                     mode = "CAR",
+                     mode = "TRANSIT",
                      date_time = Sys.time(),
                      arriveBy = FALSE,
                      maxWalkDistance = 800,
@@ -31,44 +31,18 @@ otp_isochrone <- function(otpcon = NA,
                      cutoffSec = c(600,1200,1800,2400, 3000, 3600))
 {
   # Check Valid Inputs
-  if(!"otpconnect" %in% class(otpcon)){
-    message("otpcon is not a valid otpconnect object")
-    stop()
-  }
-  if(class(fromPlace) != "numeric" | length(fromPlace) != 2){
-    message("fromPlace is not a valid latitude, longitude pair")
-    stop()
-  }else{
-    if(fromPlace[1] <= 90 & fromPlace[1] >= -90 &  fromPlace[2] <= 180 & fromPlace[2] >= -180){
-      fromPlace <- paste(fromPlace, collapse = ",")
-    }else{
-      message("fromPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
-      stop()
-    }
-
-  }
-  if(!all(mode %in% c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"))){
-    message("mode is not a valid, can be a character vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
-    stop()
-  }else{
-    mode <- paste(mode, collapse = ",")
-  }
-  if(!all(class(date_time) %in% c("POSIXct","POSIXt") )){
-    message("date_time is not a valid, must be object of class POSIXct POSIXt")
-    stop()
-  }else{
-    date <- substr(as.character(date_time),1,10)
-    time <- substr(as.character(date_time),12,16)
-  }
-  if(class(cutoffSec) != "numeric"){
-    message("cutoffSec is not valid vector of numbers")
-    stop()
-  }
-  if(arriveBy){
-    arriveBy <- 'true'
-  }else{
-    arriveBy <- 'false'
-  }
+  checkmate::assert_class(otpcon,"otpconnect")
+  checkmate::assert_numeric(fromPlace, lower =  -180, upper = 180, len = 2)
+  fromPlace <- paste(fromPlace, collapse = ",")
+  mode <- toupper(mode)
+  checkmate::assert_subset(mode, choices = c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"), empty.ok = F)
+  mode <- paste(mode, collapse = ",")
+  checkmate::assert_posixct(date_time)
+  date <- format(date_time, "%m/%d/%Y")
+  time <- format(date_time, '%I:%M:%S')
+  checkmate::assert_numeric(cutoffSec, lower =  0)
+  checkmate::assert_logical(arriveBy)
+  arriveBy <- tolower(as.character(arriveBy))
 
   # Construct URL
   routerUrl <- make_url(otpcon)
