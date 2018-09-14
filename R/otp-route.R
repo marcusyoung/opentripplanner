@@ -10,12 +10,12 @@
 #' @param walkReluctance Numeric passed to OTP
 #' @param transferPenalty Numeric passed to OTP
 #' @param minTransferTime Numeric passed to OTP
-#' @param full_elevation Logical, should the full elevation profile be returned, defualt FALSE
+#' @param full_elevation Logical, should the full elevation profile be returned, default FALSE
 #'
 #' @export
 #'
-#' @detials
-#' This function returns a SF data.frame with one row for each leg of the jounrey
+#' @details
+#' This function returns a SF data.frame with one row for each leg of the journey
 #' (a leg is defined by a change in mode). For transit more than one route option may be returned
 #' and is indicated by the route_option column.
 #'
@@ -44,47 +44,19 @@ otp_plan <- function(otpcon = NA,
            full_elevation = FALSE)
 {
   # Check Valid Inputs
-  if(!"otpconnect" %in% class(otpcon)){
-    message("otpcon is not a valid otpconnect object")
-    stop()
-  }
-  if(class(fromPlace) != "numeric" | length(fromPlace) != 2){
-    message("fromPlace is not a valid latitude, longitude pair")
-    stop()
-  }else{
-    if(fromPlace[1] <= 90 & fromPlace[1] >= -90 &  fromPlace[2] <= 180 & fromPlace[2] >= -180){
-      fromPlace <- paste(fromPlace, collapse = ",")
-    }else{
-      message("fromPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
-      stop()
-    }
+  checkmate::assert_class(otpcon,"otpconnect")
+  checkmate::assert_numeric(fromPlace, lower =  -180, upper = 180, len = 2)
+  fromPlace <- paste(fromPlace, collapse = ",")
+  checkmate::assert_numeric(toPlace, lower =  -180, upper = 180, len = 2)
+  toPlace <- paste(toPlace, collapse = ",")
+  mode <- toupper(mode)
+  checkmate::assert_subset(mode, choices = c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"), empty.ok = F)
+  mode <- paste(mode, collapse = ",")
+  checkmate::assert_posixct(date_time)
+  date <- format(date_time, "%m/%d/%Y")
+  time <- format(date_time, '%I:%M:%S')
+  #time <- tolower(time)
 
-  }
-  if(class(toPlace) != "numeric" | length(toPlace) != 2){
-    message("toPlace is not a valid latitude, longitude pair")
-    stop()
-  }else{
-    if(toPlace[1] <= 90 & toPlace[1] >= -90 &  toPlace[2] <= 180 & toPlace[2] >= -180){
-      toPlace <- paste(toPlace, collapse = ",")
-    }else{
-      message("toPlace coordinates excced valid values +/- 90 and +/- 180 degrees")
-      stop()
-    }
-
-  }
-  if(!all(mode %in% c("TRANSIT","WALK","BICYCLE","CAR","BUS","RAIL"))){
-    message("mode is not a valid, can be a character vector of any of these values TRANSIT, WALK, BICYCLE, CAR, BUS, RAIL")
-    stop()
-  }else{
-    mode <- paste(mode, collapse = ",")
-  }
-  if(!all(class(date_time) %in% c("POSIXct","POSIXt") )){
-    message("date_time is not a valid, must be object of class POSIXct POSIXt")
-    stop()
-  }else{
-    date <- substr(as.character(date_time),1,10)
-    time <- substr(as.character(date_time),12,16)
-  }
   if(arriveBy){
     arriveBy <- 'true'
   }else{
@@ -135,13 +107,13 @@ otp_plan <- function(otpcon = NA,
 
 #' Convert Google Encoded Polyline and elevation data into sf object
 #'
-#' OTP returns the 2d route as a polylinebean and the elevation profile as vector of numbers
-#' But the number of points for each is not the same, as 2D line only has a point at change of driections
-#' While elevation is regually spaced. If elevation is supplied the correct heights are matched
+#' OTP returns the 2d route as a polyline bean and the elevation profile as vector of numbers
+#' But the number of points for each is not the same, as 2D line only has a point at change of directions
+#' While elevation is regally spaced. If elevation is supplied the correct heights are matched
 #'
 #' @param line character - polyline
 #' @param elevation numeric - vector of elevations
-#' None
+
 polyline2linestring <- function(line, elevation = NULL){
   line <- gepaf::decodePolyline(line)
   line <- as.matrix(line[,2:1])
@@ -167,11 +139,13 @@ polyline2linestring <- function(line, elevation = NULL){
   }
 
 }
+
 #' Correct the elevation distances
 #'
-#' OTP returns elevation as a distacne along the leg, resetting to 0 at each leg
-#' but we need the the distance along the total route. so calucalte this
+#' OTP returns elevation as a distance along the leg, resetting to 0 at each leg
+#' but we need the distance along the total route. so calculate this
 #' @param dists numeric from the elevation first column
+
 correct_distances <- function(dists){
   res <- list()
   rebase <- 0
@@ -202,6 +176,7 @@ correct_distances <- function(dists){
 #'
 #' @param obj Object from the OTP API to process
 #' @param full_elevation logical should the full elevation profile be returned (if available)
+
 otp_json2sf <- function(obj, full_elevation = FALSE) {
   requestParameters <- obj$requestParameters
   plan <- obj$plan
