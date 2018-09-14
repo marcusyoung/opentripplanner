@@ -27,7 +27,8 @@
 #' The function will accept any file name for the .jar file, but it must be the only .jar file in that directory
 #' OTP can support multiple routers (e.g. different regions), each router must have its own sub-directory in the graphs directory
 #' @examples
-#' otp_build_graph("C:/otp")
+#' log = otp_build_graph(otp = "C:/otp/otp.jar", dir = "C:/otp")
+#'
 #' @export
 otp_build_graph <- function(otp = NULL,
                             dir = NULL,
@@ -36,7 +37,7 @@ otp_build_graph <- function(otp = NULL,
                             analyst = FALSE)
 {
   # Run Checks
-  jar_file <- otp_checks(otp = otp, dir = dir, router = router, graph = F)
+  otp_checks(otp = otp, dir = dir, router = router, graph = F)
   message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
@@ -44,8 +45,6 @@ otp_build_graph <- function(otp = NULL,
                  memory,
                  'G -jar "',
                  otp,
-                 '/',
-                 jar_file,
                  '" --build "',
                  dir,
                  '/graphs/',
@@ -223,19 +222,12 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
     stop()
   }
   # Check that the folder exists
-  if(!dir.exists(otp)){
+  if(!file.exists(otp)){
     warning(paste0("Unable to find directory: ",otp))
     stop()
   }
   if(!dir.exists(dir)){
     warning(paste0("Unable to find directory: ",dir))
-    stop()
-  }
-  # Check that the jar exists
-  jar_file <- list.files(otp, recursive = F)
-  jar_file <- jar_file[grepl("\\.jar",jar_file)]
-  if(length(jar_file) == 0){
-    warning(paste0("Unable to find .jar file in ",dir))
     stop()
   }
 
@@ -286,5 +278,4 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
 
 
   ### End of Checks
-  return(jar_file)
 }
