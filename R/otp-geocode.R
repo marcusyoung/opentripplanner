@@ -23,44 +23,25 @@ otp_geocode <- function(otpcon = NA,
                         autocomplete = FALSE,
                         stops = TRUE,
                         clusters = FALSE,
-                        corners = TRUE)
+                        corners = TRUE,
+                        type = "SF")
 {
   # Validate Inputs
-  if(!"otpconnect" %in% class(otpcon)){
-    message("otpcon is not a valid otpconnect object")
-    stop()
-  }
-  if(class(query) != "character"){
-    message("query is not of class 'character'")
-    stop()
-  }
-  if(class(autocomplete) != "logical"){
-    message("autocomplete is not of class 'logical'")
-    stop()
-  }
-  if(class(stops) != "logical"){
-    message("stops is not of class 'logical'")
-    stop()
-  }
-  if(class(clusters) != "logical"){
-    message("clusters is not of class 'logical'")
-    stop()
-  }
-  if(class(corners) != "logical"){
-    message("corners is not of class 'logical'")
-    stop()
-  }
-  if(!type %in% c("SF","Coordinates","Both") | length(type) != 1){
-    message("type is not valid, can be one of SF, Coordinates, Both")
-    stop()
-  }
+  checkmate::assert_class(otpcon,"otpconnect")
+  checkmate::assert_character(query)
+  checkmate::assert_logical(autocomplete)
+  checkmate::assert_logical(stops)
+  checkmate::assert_logical(clusters)
+  checkmate::assert_logical(corners)
+  checkmate::assert_choice(type, choices = c("SF","Coordinates","Both"))
+
 
   autocomplete <- tolower(as.character(autocomplete))
   stops <- tolower(as.character(stops))
   clusters <- tolower(as.character(clusters))
   corners <- tolower(as.character(corners))
 
-    # Construct URL
+  # Construct URL
   routerUrl <- make_url(otpcon)
   routerUrl <- paste0(routerUrl,"/geocode")
 

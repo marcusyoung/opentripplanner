@@ -1,5 +1,5 @@
 otp = "E:/otp/otp.jar"
-dir = "D:/GitHub/opentripplanner-malcolm/inst/extdata/"
+dir = "D:/GitHub/opentripplanner-malcolm/inst/extdata"
 memory = 6
 #devtools::install_github("mem48/opentripplanner-malcolm")
 #library(opentripplanner)
@@ -29,7 +29,7 @@ toPlace = c(53.40749, -2.32635)
 # fails for transit where there are multiple legs to each itinary
 
 
-route = otp_plan(otpcon, fromPlace = fromPlace, toPlace = toPlace, mode = c("CAR"), full_elevation = T)
+route = otp_plan(otpcon, fromPlace = fromPlace, toPlace = toPlace, mode = c("TRANSIT","WALK"), full_elevation = T, date_time = lubridate::ymd_hms("2017-09-06 12:15:00"))
 
 route = route[route$route_option == 1,]
 qtm(sf::st_zm(route), lines.col = "mode", lines.lwd = 3)
