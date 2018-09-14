@@ -119,11 +119,11 @@ otp_setup <- function(otp = NULL,
 
 
   # Set up OTP
-  if(Sys.info()[['sysname']] == "Linux") {
+  if(testOS("linux")) {
     message("You're on linux, this function is not yet supported")
     stop()
 
-  }else if(Sys.info()[['sysname']] == "Windows"){
+  }else if(testOS("windows")){
 
     text <- paste0('java -Xmx',memory,'G -jar "',
                    otp,
@@ -138,7 +138,7 @@ otp_setup <- function(otp = NULL,
     set_up <- try(system(text, intern = FALSE, wait = FALSE))
 
 
-  }else if(Sys.info()[['sysname']] == "Darwin"){
+  }else if(testOS("mac")){
     message("You're on Mac, this function is not yet supported")
     stop()
 
@@ -151,7 +151,7 @@ otp_setup <- function(otp = NULL,
 
   # Check for errors
   if(grepl("ERROR",set_up[2])){
-    message("Failed to build graph with message:")
+    message("Failed to start OTP with message:")
     message(set_up[2])
   }
 
@@ -239,8 +239,8 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
       java_version <- strsplit(java_version,"\"")[[1]][2]
       java_version <- strsplit(java_version,"\\.")[[1]][1:2]
       java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
-      if(java_version < 1.8){
-        warning("OTP requires Java version 1.8 or later")
+      if(java_version < 8 | java_version >= 9){
+        warning("OTP requires Java version 8 ")
         stop()
       }
     }
