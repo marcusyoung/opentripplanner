@@ -239,6 +239,10 @@ otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
       java_version <- strsplit(java_version,"\"")[[1]][2]
       java_version <- strsplit(java_version,"\\.")[[1]][1:2]
       java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
+      if(is.na(java_version)){
+        warning("OTP requires Java version 8 ")
+        stop()
+      }
       if(java_version < 1.8 | java_version >= 1.9){
         warning("OTP requires Java version 8 ")
         stop()
