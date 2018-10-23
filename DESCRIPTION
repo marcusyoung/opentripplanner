@@ -15,6 +15,16 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     checkmate,
-    httr
-RoxygenNote: 6.0.1
-Suggests: testthat
+    httr,
+    sf,
+    gepaf,
+    dplyr,
+    geosphere,
+    jsonlite,
+    pbapply
+RoxygenNote: 6.1.0
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
