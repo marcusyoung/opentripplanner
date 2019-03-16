@@ -6,11 +6,11 @@
 #'
 #' @param otp A character string, path to the OTP .jar file
 #' @param dir A character string, path to a directory containing the necessary files, see details
-#' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
+#' @param memory A positive integer. Amount of memory to assign to OTP in GB, default is 2
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
-#' @param analyst Logial, should analyst feature be built, default FALSE
+#' @param analyst Logical, should analyst feature be built, default FALSE
 #' @return
-#' Returns and log messages produced by OTP, and will return the message "Graph built" if sucessfull
+#' Returns and log messages produced by OTP, and will return the message "Graph built" if successful
 #' @details
 #' The OTP .jar file can be downloaded from https://repo1.maven.org/maven2/org/opentripplanner/otp/
 #'
@@ -18,9 +18,9 @@
 #' specified by the dir variable.
 #'
 #' /graphs - A sub-directory
-#'   /current - A sub-directory with the name of the OTP router used in 'router' variaible
+#'   /current - A sub-directory with the name of the OTP router used in 'router' variable
 #'     osm.pbf - Required, pbf file containing the Open Street Map
-#'     router-config.json - Required, json file containing configations settings for the OTP
+#'     router-config.json - Required, json file containing configuration settings for OTP
 #'     gtfs.zip - Optional, and number of GTFS files with transit timetables
 #'     terrain.tif - Optional, GeoTiff image of terrain map
 #'
@@ -37,7 +37,12 @@ otp_build_graph <- function(otp = NULL,
                             analyst = FALSE)
 {
   # Run Checks
-  otp_checks(otp = otp, dir = dir, router = router, graph = F)
+  otp_checks(
+    otp = otp,
+    dir = dir,
+    router = router,
+    graph = F
+  )
   message("Basic checks completed, building graph, this may take a few minutes")
 
   # Set up OTP
@@ -51,18 +56,18 @@ otp_build_graph <- function(otp = NULL,
                  router,
                  '"')
 
-  if(analyst){
-    text <- paste0(text," --analyst")
+  if (analyst) {
+    text <- paste0(text, " --analyst")
   }
 
 
   set_up <- try(system(text, intern = TRUE))
 
   # Check for errors
-  if(grepl("ERROR",set_up[2]) | grepl("Error",set_up[1])){
+  if (grepl("ERROR", set_up[2]) | grepl("Error", set_up[1])) {
     message("Failed to build graph with message:")
     message(set_up[2])
-  }else{
+  } else{
     message("Graph built")
 
   }
@@ -81,23 +86,22 @@ otp_build_graph <- function(otp = NULL,
 #' The function assumes you have run otp_build_graph()
 #' @param otp A character string, path to the OTP .jar file
 #' @param dir A character string, path to a directory containing the necessary files, see details
-#' @param memory A positive integer. Amount of memory to assign to the OTP in GB, default is 2
+#' @param memory A positive integer. Amount of memory to assign to OTP in GB, default is 2
 #' @param router A character vector for the name of the routers, must match with contents of dir, default "current"
 #' Only a single router is currently supported
 #' @param port A positive integer. Optional, default is 8080.
 #' @param securePort A positive integer. Optional, default is 8081.
-#' @param analyst Logical. Should the analyist features be loaded? Default FALSE
+#' @param analyst Logical. Should the analyst features be loaded? Default FALSE
 #' @param wait Logical, Should R wait until OTP has loaded before running next line of code, default TRUE
 #' @return
 #' This function does not return a value to R.
 #' If wait is TRUE R will wait until OTP is running (maximum of 5 minutes)
-#' @detials
-#'
-#' #' To run an OTP graph must have been created using otp_build-grah and the following files to be in the directory
+#' @details
+#' To run an OTP graph must have been created using otp_build_graph and the following files to be in the directory
 #' specified by the dir variable.
 #'
 #' /graphs - A sub-directory
-#'   /current - A sub-directory with the name of the OTP router used in 'router' variaible
+#'   /current - A sub-directory with the name of the OTP router used in 'router' variable
 #'     graph.obj  OTP graph
 #'
 #' @examples \dontrun{
@@ -115,70 +119,102 @@ otp_setup <- function(otp = NULL,
                       wait = TRUE)
 {
   # Run Checks
-  otp_checks(otp = otp, dir = dir, router = router, graph = T)
+  otp_checks(
+    otp = otp,
+    dir = dir,
+    router = router,
+    graph = T
+  )
   memory <- floor(memory) # Can't have fractions of GB
 
 
   # Set up OTP
-  if(checkmate::testOS("linux")) {
+  if (checkmate::testOS("linux")) {
     message("You're on linux, this function is not yet supported")
     stop()
 
-  }else if(checkmate::testOS("windows")){
+  } else if (checkmate::testOS("windows")) {
+    text <- paste0(
+      'java -Xmx',
+      memory,
+      'G -jar "',
+      otp,
+      '" --router ',
+      router,
+      ' --graphs "',
+      dir,
+      '/graphs"',
+      ' --server --port ',
+      port,
+      ' --securePort ',
+      securePort
+    )
 
-    text <- paste0('java -Xmx',memory,'G -jar "',
-                   otp,
-                   '" --router ',router,
-                   ' --graphs "',dir,'/graphs"',
-                   ' --server --port ',port,
-                   ' --securePort ',securePort)
-
-    if(analyst){
-      text <- paste0(text," --analyst")
+    if (analyst) {
+      text <- paste0(text, " --analyst")
     }
     set_up <- try(system(text, intern = FALSE, wait = FALSE))
 
 
-  }else if(checkmate::testOS("mac")){
+  } else if (checkmate::testOS("mac")) {
     message("You're on Mac, this function is not yet supported")
     stop()
 
-  }else{
-    message("You're on and unknow OS, this function is not yet supported")
+  } else{
+    message("You're on and unknown OS, this function is not yet supported")
     stop()
 
   }
 
 
   # Check for errors
-  if(grepl("ERROR",set_up[2])){
+  if (grepl("ERROR", set_up[2])) {
     message("Failed to start OTP with message:")
     message(set_up[2])
   }
 
-  message(paste0(Sys.time()," OTP is loading and may take a while to be useable"))
+  message(paste0(Sys.time(), " OTP is loading and may take a while to be useable"))
 
-  if(wait){
+  if (wait) {
     Sys.sleep(30)
 
     # Check if connected
-    for(i in 1:10){
+    for (i in 1:10) {
       #message(paste0("Attempt ",i))
-      otpcon <- try(otp_connect(hostname = "localhost",
-                                router = router,
-                                port = port,
-                                ssl = FALSE,
-                                check = TRUE), silent = T)
+      otpcon <- try(otp_connect(
+        hostname = "localhost",
+        router = router,
+        port = port,
+        ssl = FALSE,
+        check = TRUE
+      ),
+      silent = T)
 
-      if("otpconnect" %in% class(otpcon)){
-        message(paste0(Sys.time()," OTP is ready to use Go to localhost:",port," in your browser to view the OTP"))
-        browseURL(paste0(ifelse(otpcon$ssl,"https://","http://"),"localhost:",port))
+      if ("otpconnect" %in% class(otpcon)) {
+        message(
+          paste0(
+            Sys.time(),
+            " OTP is ready to use Go to localhost:",
+            port,
+            " in your browser to view OTP"
+          )
+        )
+        utils::browseURL(paste0(
+          ifelse(otpcon$ssl, "https://", "http://"),
+          "localhost:",
+          port
+        ))
         break
-      }else{
-        if(i < 10){
+      } else{
+        if (i < 10) {
           Sys.sleep(30)
-        }else{
-          message(paste0(Sys.time()," OTP is taking an unusually long time to load, releasing R to your control"))
+        } else{
+          message(
+            paste0(
+              Sys.time(),
+              " OTP is taking an unusually long time to load, releasing R to your control"
+            )
+          )
         }
 
       }
@@ -198,15 +234,15 @@ otp_setup <- function(otp = NULL,
 #' @export
 otp_stop <- function()
 {
-  if(checkmate::testOS("linux")) {
+  if (checkmate::testOS("linux")) {
     message("You're on linux, this function is not yet supported")
-  }else if(checkmate::testOS("windows")){
-    readline(prompt="This will force Java to close, Press [enter] to continue, [escape] to abort")
+  } else if (checkmate::testOS("windows")) {
+    readline(prompt = "This will force Java to close, Press [enter] to continue, [escape] to abort")
     system("Taskkill /IM java.exe /F", intern = TRUE)
-  }else if(checkmate::testOS("mac")){
+  } else if (checkmate::testOS("mac")) {
     message("You're on Mac, this function is not yet supported")
-  }else{
-    message("You're on and unknow OS, this function is not yet supported")
+  } else{
+    message("You're on and unknown OS, this function is not yet supported")
   }
 
 }
@@ -214,52 +250,57 @@ otp_stop <- function()
 
 #' Basic OTP Setup Checks
 #'
-#' Checks to run before setting up the OTP
+#' Checks to run before setting up OTP
 #'
 #' @param dir A character string path to a folder containing the necessary files, see details
 #' @param router A character string for the name of the router, must match with contents of dir, default "current"
 #' @param graph Logical, check for graph, default = FALSE
 #' @param otp Path to otp.jar
 #'
-otp_checks <- function(otp = NULL, dir = NULL, router = NULL, graph = FALSE)
-{
-  # Checks
-  checkmate::assertFileExists(otp, extension = "jar")
-  checkmate::assertDirectoryExists(dir)
-  checkmate::assertDirectoryExists(paste0(dir,"/graphs/",router))
+otp_checks <-
+  function(otp = NULL,
+           dir = NULL,
+           router = NULL,
+           graph = FALSE)
+  {
+    # Checks
+    checkmate::assertFileExists(otp, extension = "jar")
+    checkmate::assertDirectoryExists(dir)
+    checkmate::assertDirectoryExists(paste0(dir, "/graphs/", router))
 
-  # Check we have correct verrsion of Java
-  if(checkmate::testOS("linux")) {
-    message("You're on linux, java version check not yet supported")
-  }else if(checkmate::testOS("windows")){
-    java_version <- try(system("java -version", intern = TRUE))
-    if(class(java_version) == "try-error"){
-      warning("R was unable to detect a version of Java")
-      stop()
-    }else{
-      java_version <- java_version[1]
-      java_version <- strsplit(java_version,"\"")[[1]][2]
-      java_version <- strsplit(java_version,"\\.")[[1]][1:2]
-      java_version <- as.numeric(paste0(java_version[1],".",java_version[2]))
-      if(is.na(java_version)){
-        warning("OTP requires Java version 8 ")
+    # Check we have correct version of Java
+    if (checkmate::testOS("linux")) {
+      message("You're on linux, java version check not yet supported")
+    } else if (checkmate::testOS("windows")) {
+      java_version <- try(system("java -version", intern = TRUE))
+      if (class(java_version) == "try-error") {
+        warning("R was unable to detect a version of Java")
         stop()
+      } else{
+        java_version <- java_version[1]
+        java_version <- strsplit(java_version, "\"")[[1]][2]
+        java_version <- strsplit(java_version, "\\.")[[1]][1:2]
+        java_version <-
+          as.numeric(paste0(java_version[1], ".", java_version[2]))
+        if (is.na(java_version)) {
+          warning("OTP requires Java version 8 ")
+          stop()
+        }
+        if (java_version < 1.8 | java_version >= 1.9) {
+          warning("OTP requires Java version 8 ")
+          stop()
+        }
       }
-      if(java_version < 1.8 | java_version >= 1.9){
-        warning("OTP requires Java version 8 ")
-        stop()
-      }
+    } else if (checkmate::testOS("mac")) {
+      message("You're on Mac, java version check not yet supported")
+    } else{
+      message("You're on and unknown OS, java version check not yet supported")
     }
-  }else if(checkmate::testOS("mac")){
-    message("You're on Mac, java version check not yet supported")
-  }else{
-    message("You're on and unknow OS, java version check not yet supported")
-  }
 
-  # Check that the graph exists
-  if(graph){
-    checkmate::assertFileExists(paste0(dir,"/graphs/",router,"/Graph.obj"))
-  }
+    # Check that the graph exists
+    if (graph) {
+      checkmate::assertFileExists(paste0(dir, "/graphs/", router, "/Graph.obj"))
+    }
 
-  ### End of Checks
-}
+    ### End of Checks
+  }
