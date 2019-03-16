@@ -26,7 +26,10 @@ otp_geocode(otpcon = NA, query = NA, autocomplete = FALSE,
 Returns a data.frame of SF POINTS or Coordinates of all the locations that match `query`
 }
 \description{
-Geocoding converts a named place, such as a steet name into a lat/long pair.
+Geocoding converts a named place, such as a street name into a lat/long pair.
+}
+\details{
+OTP will return a maximum of 10 results
 }
 \examples{
 \dontrun{
