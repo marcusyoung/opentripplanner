@@ -2,7 +2,7 @@
 % Please edit documentation in R/otp-batch.R
 \name{otp_plan_batch}
 \alias{otp_plan_batch}
-\title{Get multiple routes from OTP}
+\title{Get multiple routes from the OTP}
 \usage{
 otp_plan_batch(otpcon = NA, fromPlace = NA, toPlace = NA, ...)
 }
@@ -13,14 +13,11 @@ otp_plan_batch(otpcon = NA, fromPlace = NA, toPlace = NA, ...)
 
 \item{toPlace}{Numeric matrix of two columns, Latitude/Longitude pairs}
 
-\item{...}{Other variables passed to otp_plan}
+\item{...}{Other variaibles passed to otp_plan}
 }
 \value{
 Returns a data.frame of SF POLYLINES
 }
 \description{
-Get multiple routes from OTP
-}
-\details{
-This function is a batch version of otp_plan() and is useful if you want to produce many routes at once.
+Get multiple routes from the OTP
 }

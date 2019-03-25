@@ -12,14 +12,14 @@ otp_build_graph(otp = NULL, dir = NULL, memory = 2,
 
 \item{dir}{A character string, path to a directory containing the necessary files, see details}
 
-\item{memory}{A positive integer. Amount of memory to assign to OTP in GB, default is 2}
+\item{memory}{A positive integer. Amount of memory to assign to the OTP in GB, default is 2}
 
 \item{router}{A character string for the name of the router, must match with contents of dir, default "current"}
 
-\item{analyst}{Logical, should analyst feature be built, default FALSE}
+\item{analyst}{Logial, should analyst feature be built, default FALSE}
 }
 \value{
-Returns and log messages produced by OTP, and will return the message "Graph built" if successful
+Returns and log messages produced by OTP, and will return the message "Graph built" if sucessfull
 }
 \description{
 OTP is run in Java and requires Java commands to be typed into the command line.
@@ -33,9 +33,9 @@ To build an OTP graph requires the following files to be in the directory
 specified by the dir variable.
 
 /graphs - A sub-directory
-  /current - A sub-directory with the name of the OTP router used in 'router' variable
+  /current - A sub-directory with the name of the OTP router used in 'router' variaible
     osm.pbf - Required, pbf file containing the Open Street Map
-    router-config.json - Required, json file containing configuration settings for OTP
+    router-config.json - Required, json file containing configations settings for the OTP
     gtfs.zip - Optional, and number of GTFS files with transit timetables
     terrain.tif - Optional, GeoTiff image of terrain map
 
