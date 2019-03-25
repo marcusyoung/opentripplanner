@@ -108,7 +108,7 @@ library(opentripplanner)
 
 ## Next Steps
 
-Now that you have installed Open Trip Planner for R got to the Getting Started vignette, to find how to create a graph and use it to plan trips. You might also intrested in:
+Now that you have installed Open Trip Planner for R got to the Getting Started vignette, to find how to create a graph and use it to plan trips. You might also interested in:
 
 ### Getting Data for OTP
 
@@ -126,7 +126,7 @@ OTP can use public transport timetable data in the GFTS format. You can find GTF
 
 #### Elevation Data
 
-You can add terrain infromation to your routes, especially useful for walking and cycling using GeoTIFF images. You can find world wide elevation data at https://www2.jpl.nasa.gov/srtm/ .
+You can add terrain information to your routes, especially useful for walking and cycling using GeoTIFF images. You can find world wide elevation data at https://www2.jpl.nasa.gov/srtm/ .
 
 
 

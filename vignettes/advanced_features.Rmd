@@ -11,11 +11,11 @@ vignette: >
 
 ## Introduction
 
-The vignette introduces some of the more advanced features of OTP, and gives some examples of the types of anlaysis that are possible when using OTP and R togther.
+The vignette introduces some of the more advanced features of OTP, and gives some examples of the types of analysis that are possible when using OTP and R together.
 
 ### Recap
 
-For this vingnette we will use the same data as the `getting_started` vingette. If you have not yet created the example graph you can set it up with the following commands. If you are using non-default settings see the `getting_started` vingette for full details.
+For this vignette we will use the same data as the `getting_started` vignette. If you have not yet created the example graph you can set it up with the following commands. If you are using non-default settings see the `getting_started` vignette for full details.
 
 ```{r eval =FALSE}
 library(opentripplanner)
@@ -75,7 +75,7 @@ lsoa <- readRDS(system.file("data/gm-lsoa-centroids.Rds", package="opentripplann
 head(lsoa)
 ```
 
-`otp_plan_batch` requires the fromPlace and the toPlace to each be 2 x m matricies wher each row is a latitute/longditude pair.
+`otp_plan_batch` requires the fromPlace and the toPlace to each be 2 x m matrices where each row is a latitude/longitude pair.
 
 
 ```{r, eval=FALSE}
