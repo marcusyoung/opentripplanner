@@ -21,7 +21,7 @@ Only a single router is currently supported}
 
 \item{securePort}{A positive integer. Optional, default is 8081.}
 
-\item{analyst}{Logical. Should the analyist features be loaded? Default FALSE}
+\item{analyst}{Logical. Should the analyst features be loaded? Default FALSE}
 
 \item{wait}{Logical, Should R wait until OTP has loaded before running next line of code, default TRUE}
 }
@@ -36,6 +36,14 @@ This function sets up a local instance of OTP, for remote versions see documenta
 }
 \details{
 The function assumes you have run otp_build_graph()
+
+
+To run an OTP graph must have been created using otp_build_graph and the following files to be in the directory
+specified by the dir variable.
+
+/graphs - A sub-directory
+  /current - A sub-directory with the name of the OTP router used in 'router' variable
+    graph.obj  OTP graph
 }
 \examples{
 \dontrun{
