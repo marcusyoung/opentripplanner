@@ -2,7 +2,7 @@
 % Please edit documentation in R/otp-route.R
 \name{otp_plan}
 \alias{otp_plan}
-\title{Get the geometry of a route from OTP}
+\title{Get the geometry of a route from the OTP}
 \usage{
 otp_plan(otpcon = NA, fromPlace = NA, toPlace = NA, mode = "CAR",
   date_time = Sys.time(), arriveBy = FALSE, maxWalkDistance = 800,
@@ -33,7 +33,7 @@ otp_plan(otpcon = NA, fromPlace = NA, toPlace = NA, mode = "CAR",
 \item{full_elevation}{Logical, should the full elevation profile be returned, default FALSE}
 }
 \description{
-Get the geometry of a route from OTP
+Get the geometry of a route from the OTP
 }
 \details{
 This function returns a SF data.frame with one row for each leg of the journey

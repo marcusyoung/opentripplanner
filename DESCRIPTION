@@ -22,11 +22,9 @@ Imports:
     geosphere,
     jsonlite,
     pbapply
-RoxygenNote: 6.1.1
-Suggests:
-    spelling, 
+RoxygenNote: 6.1.0
+Suggests: 
     testthat,
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Language: en-GB

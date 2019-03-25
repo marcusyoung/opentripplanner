@@ -36,11 +36,6 @@ Returns a data.frame of SF POLYGONS
 \description{
 Get the Isochrones from a location
 }
-\details{
-Isochrones are maps of equal travel time,
-for a given location a map is produced showing how long it takes to reach
-each location.
-}
 \examples{
 \dontrun{
 isochrone1 <- otp_isochrone(otpcon, fromPlace = c(51.5292,-0.1346))
